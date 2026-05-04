@@ -59,7 +59,7 @@ export async function generateInvoicePdf(d: InvoiceData): Promise<Buffer> {
     doc.fontSize(11).font("Helvetica-Bold").fillColor(black).text("Gray Cup Enterprises", startX, y + 14);
     doc.font("Helvetica").fontSize(10).fillColor(gray).text("FF122, Rodeo Drive Mall, GT Road, TDI City, Kundli, Sonipat, Haryana 131030", startX, y + 28, { width: 260 });
     doc.text("GSTIN: 06AAMCG4985H1Z4", startX, doc.y + 14);
-    doc.text("office@graycup.in", startX, doc.y + 14);
+    doc.text("office@graycup.org", startX, doc.y + 14);
 
     y = doc.y + 20;
     doc.moveTo(startX, y).lineTo(endX, y).strokeColor(lightGray).lineWidth(0.5).stroke();

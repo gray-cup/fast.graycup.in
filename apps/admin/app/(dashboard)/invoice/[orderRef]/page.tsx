@@ -52,7 +52,7 @@ export default async function InvoicePage({
             <p className="text-stone-300 text-xs mt-1.5 leading-relaxed">
               FF122, Rodeo Drive Mall, GT Road, TDI City<br />
               Kundli, Sonipat, Haryana — 131030<br />
-              GSTIN: 06AAMCG4985H1Z4 &nbsp;·&nbsp; office@graycup.in
+              GSTIN: 06AAMCG4985H1Z4 &nbsp;·&nbsp; office@graycup.org
             </p>
           </div>
           <div className="text-right shrink-0">

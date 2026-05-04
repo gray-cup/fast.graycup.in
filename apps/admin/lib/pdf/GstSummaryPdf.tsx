@@ -65,7 +65,7 @@ export function GstSummaryPdf({ rows, date }: { rows: GstRow[]; date: string }) 
       <Page size="A4" orientation="landscape" style={s.page}>
         <Text style={s.heading}>GST Summary Report</Text>
         <Text style={s.sub}>Generated on {date} · {rows.length} transaction{rows.length !== 1 ? "s" : ""}</Text>
-        <Text style={s.company}>Gray Cup Enterprises · GSTIN: 06AAMCG4985H1Z4 · office@graycup.in</Text>
+        <Text style={s.company}>Gray Cup Enterprises · GSTIN: 06AAMCG4985H1Z4 · office@graycup.org</Text>
 
         <View style={s.statsRow}>
           <View style={s.stat}>

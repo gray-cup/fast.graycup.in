@@ -41,7 +41,7 @@ function drawInvoice(doc: typeof PDFDocument.prototype, d: InvoiceData, x: numbe
   doc.fontSize(6.5).font("Helvetica-Bold").fillColor(black).text("Gray Cup Enterprises", x + w - margin - 90, y + margin + 30);
   doc.font("Helvetica").fontSize(5.5).fillColor(gray).text("FF122, Rodeo Drive Mall, GT Road, TDI City, Kundli, Sonipat, Haryana 131030", x + w - margin - 90, y + margin + 40, { width: 90 });
   doc.text("GSTIN: 06AAMCG4985H1Z4", x + w - margin - 90, doc.y + 5);
-  doc.text("office@graycup.in", x + w - margin - 90, doc.y + 5);
+  doc.text("office@graycup.org", x + w - margin - 90, doc.y + 5);
 
   const tableY = y + margin + 78;
   doc.moveTo(x + margin, tableY).lineTo(x + w - margin, tableY).strokeColor(lightGray).lineWidth(0.3).stroke();
@@ -106,7 +106,7 @@ export async function generateMultiInvoicePdf(invoices: InvoiceData[]): Promise<
       }
 
       doc.fontSize(7).fillColor("#999999").text(
-        "Gray Cup Enterprises  ·  GSTIN: 06AAMCG4985H1Z4  ·  office@graycup.in",
+        "Gray Cup Enterprises  ·  GSTIN: 06AAMCG4985H1Z4  ·  office@graycup.org",
         margin, pageH - margin - 10, { align: "center", width: pageW - margin * 2 }
       );
     }
@@ -172,7 +172,7 @@ export async function generateGstSummaryPdf(invoices: InvoiceData[]): Promise<Bu
       y += 14;
     }
 
-    doc.fontSize(8).fillColor(lightGray).text("Gray Cup Enterprises  ·  GSTIN: 06AAMCG4985H1Z4  ·  office@graycup.in", 40, doc.page.height - 40, { align: "center" });
+    doc.fontSize(8).fillColor(lightGray).text("Gray Cup Enterprises  ·  GSTIN: 06AAMCG4985H1Z4  ·  office@graycup.org", 40, doc.page.height - 40, { align: "center" });
 
     doc.end();
   });
@@ -308,7 +308,7 @@ export async function generateInvoicePdf(d: InvoiceData): Promise<Buffer> {
     doc.fontSize(11).font("Helvetica-Bold").fillColor(black).text("Gray Cup Enterprises", startX, y + 14);
     doc.font("Helvetica").fontSize(10).fillColor(gray).text("FF122, Rodeo Drive Mall, GT Road, TDI City, Kundli, Sonipat, Haryana 131030", startX, y + 28, { width: 260 });
     doc.text("GSTIN: 06AAMCG4985H1Z4", startX, doc.y + 14);
-    doc.text("office@graycup.in", startX, doc.y + 14);
+    doc.text("office@graycup.org", startX, doc.y + 14);
 
     y = doc.y + 20;
     doc.moveTo(startX, y).lineTo(endX, y).strokeColor(lightGray).lineWidth(0.5).stroke();

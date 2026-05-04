@@ -75,7 +75,7 @@ export function InvoicePdf({ data }: { data: InvoiceData }) {
             <Text style={s.company}>Gray Cup Enterprises</Text>
             <Text style={s.addr}>FF122, Rodeo Drive Mall, GT Road, TDI City</Text>
             <Text style={s.addr}>Kundli, Sonipat, Haryana — 131030</Text>
-            <Text style={s.addr}>GSTIN: 06AAMCG4985H1Z4  ·  office@graycup.in</Text>
+            <Text style={s.addr}>GSTIN: 06AAMCG4985H1Z4  ·  office@graycup.org</Text>
           </View>
           <View style={s.hRight}>
             <Text style={s.taxLabel}>TAX INVOICE</Text>
