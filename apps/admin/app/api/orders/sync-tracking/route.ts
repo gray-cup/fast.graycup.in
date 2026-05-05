@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, schema } from "@graycup/db";
-import { and, inArray, isNotNull, notInArray } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, notInArray } from "drizzle-orm";
 import { trackMultipleShipments, mapDelhiveryStatus } from "@/lib/delhivery";
 
 const TERMINAL_STATUSES = ["DELIVERED", "RETURNED", "CANCELLED"];
