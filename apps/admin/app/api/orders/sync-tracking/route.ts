@@ -1,16 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, schema } from "@graycup/db";
-import { and, eq, inArray, isNotNull } from "drizzle-orm";
+import { and, inArray, isNotNull, notInArray } from "drizzle-orm";
 import { trackMultipleShipments, mapDelhiveryStatus } from "@/lib/delhivery";
+
+const TERMINAL_STATUSES = ["DELIVERED", "RETURNED", "CANCELLED"];
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   const { orderRefs } = body as { orderRefs?: string[] };
 
-  // Only sync DISPATCHED orders that have a waybill.
-  // Skips: no waybill, DELIVERED, RETURNED, CANCELLED, PAID*, PENDING.
+  // Sync all orders with a waybill that haven't reached a terminal state.
+  // This catches packages that Delhivery has delivered (DL) but are still
+  // sitting at a pre-terminal status (e.g. DISPATCHED) in our system.
   const conditions = [
-    eq(schema.orders.status, "DISPATCHED"),
+    notInArray(schema.orders.status, TERMINAL_STATUSES),
     isNotNull(schema.orders.delhiveryWaybill),
     ...(orderRefs?.length ? [inArray(schema.orders.orderRef, orderRefs)] : []),
   ];
