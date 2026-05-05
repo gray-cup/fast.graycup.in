@@ -36,7 +36,7 @@ export const products: Product[] = [
   {
     id: "tea-sample",
     slug: "tea-sample",
-    name: "Tea Sample",
+    name: "Tea Sample (150gm)",
     tagline: "Try before you commit",
     description:
       "A 150gm introductory pack of our house CTC + Orthodox blend. Grade includes BOPSM, BP, OF, DJ and GFOP from Dooars and Assam with no Artificial Additives.",
