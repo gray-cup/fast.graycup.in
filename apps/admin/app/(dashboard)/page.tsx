@@ -485,7 +485,7 @@ function StatCards({ orders, period }: { orders: Order[]; period: Period }) {
         <div className="h-1 rounded-full bg-gray-100 overflow-hidden">
           <div className="h-full rounded-full bg-teal-500 transition-all duration-700" style={{ width: `${successPct}%` }} />
         </div>
-        <p className="text-[10px] text-gray-400">{successful.length} of {total} successful orders</p>
+        <p className="text-[10px] text-gray-400">{successful.length} of {total} successful conversions</p>
       </div>
     </div>
   );

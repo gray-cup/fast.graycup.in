@@ -23,7 +23,7 @@ export async function POST(
     pincode: order.customerPincode,
     city: pincodeInfo?.city || "",
     state: pincodeInfo?.state || "",
-    productDesc: `${order.productName} ${order.variantLabel} ×${order.quantity}`,
+    productDesc: `${order.productName} ${order.variantLabel} x${order.quantity}`,
     totalAmount: order.amount,
     weightKg: 0.5,
   });
