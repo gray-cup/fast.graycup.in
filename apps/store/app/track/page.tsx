@@ -106,7 +106,7 @@ export default function TrackPage() {
                   <div className="bg-white rounded-lg p-3 border border-gray-100">
                     <p className="text-xs text-gray-400 mb-1">Status</p>
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${isDelivered ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
-                      {status || "In Transit"}
+                      {status || "Transit"}
                     </span>
                   </div>
                   <div className="bg-white rounded-lg p-3 border border-gray-100">

@@ -67,7 +67,7 @@ function StatusBadge({ status, createdAt }: { status: string; createdAt: string 
   if (ds === "DISPATCHED") {
     return (
       <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-full ${colorClass}`}>
-        In Transit
+        Transit
       </span>
     );
   }
