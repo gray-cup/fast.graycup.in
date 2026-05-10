@@ -792,7 +792,6 @@ export default function OrdersPage() {
                   />
                 </th>
                 <th className="px-4 py-3 font-semibold text-gray-400 text-xs">#</th>
-                <th className="px-4 py-3 font-semibold text-gray-600">Order Ref</th>
                 <th className="px-4 py-3 font-semibold text-gray-600">Customer</th>
                 <th className="px-4 py-3 font-semibold text-gray-600">Product</th>
                 <th className="px-4 py-3 font-semibold text-gray-600 text-right">Amount</th>
@@ -825,7 +824,6 @@ export default function OrdersPage() {
                     />
                   </td>
                   <td className="px-4 py-3 text-xs font-bold text-gray-400 tabular-nums">#{o.orderNumber}</td>
-                  <td className="px-4 py-3 font-mono text-xs font-bold">{o.orderRef}</td>
                   <td className="px-4 py-3">
                     <div className="font-medium">{o.customerName}</div>
                   </td>
@@ -860,7 +858,7 @@ export default function OrdersPage() {
               ))}
               {filteredOrders.length === 0 && (
                 <tr>
-                  <td colSpan={10} className="text-center py-12 text-gray-400">No orders found</td>
+                  <td colSpan={9} className="text-center py-12 text-gray-400">No orders found</td>
                 </tr>
               )}
             </tbody>
