@@ -8,3 +8,4 @@ packages/ui/node_modules
 packages/db/node_modules
 apps/store/node_modules
 apps/admin/node_modules
+test

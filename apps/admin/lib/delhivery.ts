@@ -134,7 +134,7 @@ export async function trackShipment(waybill: string) {
   }
 }
 
-export async function trackMultipleShipments(waybills: string[]): Promise<Record<string, { status: string; statusType: string; location: string; updatedAt: string }>> {
+export async function trackMultipleShipments(waybills: string[]): Promise<Record<string, { status: string; statusType: string; location: string; updatedAt: string; mainStatus: string }>> {
   if (!DELHIVERY_TOKEN || waybills.length === 0) return {};
   try {
     const res = await fetch(
@@ -143,7 +143,7 @@ export async function trackMultipleShipments(waybills: string[]): Promise<Record
     );
     if (!res.ok) return {};
     const data = await res.json();
-    const result: Record<string, { status: string; statusType: string; location: string; updatedAt: string }> = {};
+    const result: Record<string, { status: string; statusType: string; location: string; updatedAt: string; mainStatus: string }> = {};
     for (const item of data?.ShipmentData || []) {
       const s = item?.Shipment;
       if (s?.AWB) {
@@ -152,6 +152,7 @@ export async function trackMultipleShipments(waybills: string[]): Promise<Record
           statusType: s.Status?.StatusType || s.StatusType || s.StatusCode || "",
           location: s.Status?.StatusLocation || "",
           updatedAt: s.Status?.StatusDateTime || "",
+          mainStatus: s.Status?.Status || "",
         };
       }
     }
@@ -162,21 +163,37 @@ export async function trackMultipleShipments(waybills: string[]): Promise<Record
 }
 
 // Maps Delhivery StatusType to our internal order status
-export function mapDelhiveryStatus(statusType: string): string | null {
+// Takes both statusType and mainStatus for more accurate mapping
+export function mapDelhiveryStatus(statusType: string, mainStatus?: string): string | null {
   const normalized = statusType?.trim().toUpperCase();
-  if (!normalized) return null;
+  const mainNormalized = mainStatus?.trim().toUpperCase();
+  
+  if (!normalized && !mainNormalized) return null;
 
+  // Check main status first (more reliable)
+  if (mainNormalized?.includes("DELIVERED")) {
+    return "DELIVERED";
+  }
+  if (mainNormalized?.includes("RETURN") || mainNormalized?.includes("RTO")) {
+    return "RETURNED";
+  }
+  if (mainNormalized?.includes("TRANSIT") || mainNormalized?.includes("IN TRANSIT")) {
+    return "DISPATCHED";
+  }
+
+  // Fall back to statusType codes
   if (normalized === "DL" || normalized.includes("DELIVERED")) {
     return "DELIVERED";
   }
   if (normalized === "RT" || normalized === "DTO" || normalized.includes("RTO") || normalized.includes("RETURN")) {
     return "RETURNED";
   }
-  // PKD = picked up by Delhivery, IT = in transit, OFD = out for delivery
+  // PKD = picked up by Delhivery, IT = in transit, OFD = out for delivery, UD = in transit (custom code)
   if (
     normalized === "PKD" ||
     normalized === "IT" ||
     normalized === "OFD" ||
+    normalized === "UD" || // Delhivery custom code for in-transit
     normalized.includes("TRANSIT") ||
     normalized.includes("INTRANSIT") ||
     normalized.includes("PICKED")

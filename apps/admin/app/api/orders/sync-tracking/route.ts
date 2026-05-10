@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
     const info = tracking[order.delhiveryWaybill!];
     if (!info) continue;
 
-    const newStatus = mapDelhiveryStatus(info.statusType);
+    const newStatus = mapDelhiveryStatus(info.statusType, info.mainStatus);
     if (newStatus && newStatus !== order.status) {
       await db
         .update(schema.orders)
