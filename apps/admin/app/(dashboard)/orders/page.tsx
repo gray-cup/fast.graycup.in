@@ -74,6 +74,17 @@ function StatusBadge({ status, createdAt }: { status: string; createdAt: string 
     );
   }
 
+  if (ds === "EXPIRED") {
+    return (
+      <span 
+        className={`text-xs font-semibold px-2 py-1 rounded-full cursor-help ${colorClass}`}
+        title="An order with no conversion: no payment"
+      >
+        {ds}
+      </span>
+    );
+  }
+
   return (
     <span className={`text-xs font-semibold px-2 py-1 rounded-full ${colorClass}`}>
       {ds}
@@ -407,6 +418,7 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<Filter>("all");
   const [sort, setSort] = useState<SortKey>("newest");
+  const [hideExpired, setHideExpired] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [busy, setBusy] = useState(false);
@@ -442,6 +454,10 @@ export default function OrdersPage() {
       if (filter === "pickup-awaiting") return status === "PAID_DISPATCH_PENDING";
       if (filter === "in-transit") return status === "DISPATCHED";
       if (filter === "delivered") return status === "DELIVERED";
+      return true;
+    })
+    .filter((o) => {
+      if (hideExpired) return displayStatus(o.status, o.createdAt) !== "EXPIRED";
       return true;
     })
     .sort((a, b) => {
@@ -761,13 +777,25 @@ export default function OrdersPage() {
 
           {/* Sync all (when nothing selected) */}
           {selected.size === 0 && (
-            <button
-              onClick={() => syncTracking()}
-              disabled={busy}
-              className="px-3 py-1.5 text-sm font-semibold text-gray-600 hover:text-gray-900 border border-gray-200 rounded-lg disabled:opacity-50 transition-colors"
-            >
-              {busy ? "Syncing…" : "Sync All Tracking"}
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => syncTracking()}
+                disabled={busy}
+                className="px-3 py-1.5 text-sm font-semibold text-gray-600 hover:text-gray-900 border border-gray-200 rounded-lg disabled:opacity-50 transition-colors"
+              >
+                {busy ? "Syncing…" : "Sync All Tracking"}
+              </button>
+              <button
+                onClick={() => setHideExpired(!hideExpired)}
+                className={`px-3 py-1.5 text-sm font-semibold rounded-lg border transition-colors ${
+                  hideExpired
+                    ? "bg-gray-200 text-gray-900 border-gray-300"
+                    : "text-gray-600 border-gray-200 hover:text-gray-900"
+                }`}
+              >
+                {hideExpired ? "Show Expired" : "Hide Expired"}
+              </button>
+            </div>
           )}
         </div>
       </div>
