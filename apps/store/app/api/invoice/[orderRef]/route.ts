@@ -27,8 +27,8 @@ export async function GET(
     );
   }
 
-  // Serve from bucket0 if already uploaded
-  if (order.invoiceKey) {
+  // Serve from cache only if no AWB (AWB may have been set after caching)
+  if (order.invoiceKey && !order.delhiveryWaybill) {
     try {
       const s3Res = await s3.send(new GetObjectCommand({ Bucket: BUCKET, Key: order.invoiceKey }));
       const bytes = await s3Res.Body!.transformToByteArray();
@@ -68,6 +68,7 @@ export async function GET(
     quantity: order.quantity,
     amount: order.amount,
     gstAmount: order.gstAmount,
+    awb: order.delhiveryWaybill,
   });
 
   const key = `invoices/${orderRef}.pdf`;

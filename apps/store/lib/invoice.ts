@@ -16,6 +16,7 @@ interface InvoiceData {
   quantity: number;
   amount: number;
   gstAmount: number;
+  awb?: string | null;
 }
 
 export async function generateInvoicePdf(d: InvoiceData): Promise<Buffer> {
@@ -45,6 +46,10 @@ export async function generateInvoicePdf(d: InvoiceData): Promise<Buffer> {
       doc.fontSize(10).fillColor(gray).text(`Invoice #: ${d.invoiceNumber}`, startX, doc.y + 22);
       doc.fontSize(10).fillColor(gray).text(`Order: ${d.orderRef}`, startX, doc.y + 36);
       doc.fontSize(10).fillColor(gray).text(d.date, startX, doc.y + 50);
+    }
+
+    if (d.awb) {
+      doc.fontSize(10).fillColor(gray).text(`AWB: ${d.awb}`, startX, doc.y + 14);
     }
 
     let y = doc.y + 20;
