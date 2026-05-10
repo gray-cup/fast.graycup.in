@@ -134,7 +134,7 @@ export async function trackShipment(waybill: string) {
   }
 }
 
-export async function trackMultipleShipments(waybills: string[]): Promise<Record<string, { status: string; statusType: string; location: string; updatedAt: string; mainStatus: string }>> {
+export async function trackMultipleShipments(waybills: string[]): Promise<Record<string, { status: string; statusType: string; location: string; updatedAt: string; mainStatus: string; pickupDate: string | null }>> {
   if (!DELHIVERY_TOKEN || waybills.length === 0) return {};
   try {
     const res = await fetch(
@@ -143,7 +143,7 @@ export async function trackMultipleShipments(waybills: string[]): Promise<Record
     );
     if (!res.ok) return {};
     const data = await res.json();
-    const result: Record<string, { status: string; statusType: string; location: string; updatedAt: string; mainStatus: string }> = {};
+    const result: Record<string, { status: string; statusType: string; location: string; updatedAt: string; mainStatus: string; pickupDate: string | null }> = {};
     for (const item of data?.ShipmentData || []) {
       const s = item?.Shipment;
       if (s?.AWB) {
@@ -153,6 +153,7 @@ export async function trackMultipleShipments(waybills: string[]): Promise<Record
           location: s.Status?.StatusLocation || "",
           updatedAt: s.Status?.StatusDateTime || "",
           mainStatus: s.Status?.Status || "",
+          pickupDate: s.PickUpDate || null,
         };
       }
     }

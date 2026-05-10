@@ -37,10 +37,21 @@ export async function POST(req: NextRequest) {
     if (!info) continue;
 
     const newStatus = mapDelhiveryStatus(info.statusType, info.mainStatus);
+    let updateData: any = {};
+    
     if (newStatus && newStatus !== order.status) {
+      updateData.status = newStatus;
+    }
+    
+    // Store pickup date if available
+    if (info.pickupDate && !order.delhiveryPickupDate) {
+      updateData.delhiveryPickupDate = info.pickupDate;
+    }
+
+    if (Object.keys(updateData).length > 0) {
       await db
         .update(schema.orders)
-        .set({ status: newStatus })
+        .set(updateData)
         .where(eq(schema.orders.orderRef, order.orderRef));
       updated++;
     }

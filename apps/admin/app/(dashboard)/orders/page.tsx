@@ -19,6 +19,7 @@ type Order = {
   customerPincode: string;
   status: string;
   delhiveryWaybill: string | null;
+  delhiveryPickupDate: string | null;
   invoiceKey: string | null;
   invoiceNumber: string | null;
   createdAt: string;
@@ -52,22 +53,42 @@ function displayStatus(status: string, createdAt: string) {
   return normalized || status;
 }
 
-function StatusBadge({ status, createdAt }: { status: string; createdAt: string }) {
+function StatusBadge({ status, createdAt, hasWaybill, pickupDate }: { status: string; createdAt: string; hasWaybill?: boolean; pickupDate?: string | null }) {
   const ds = displayStatus(status, createdAt);
   const colorClass = STATUS_COLORS[ds] || "bg-gray-100 text-gray-600";
 
   if (ds === "PAID_DISPATCH_PENDING") {
-    return (
-      <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-full ${colorClass}`}>
-        Pickup Pending
-      </span>
-    );
+    if (hasWaybill && pickupDate) {
+      // Pickup has been scheduled
+      return (
+        <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-full bg-emerald-100 text-emerald-800">
+          Pickup Soon
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+        </span>
+      );
+    } else if (hasWaybill) {
+      // Waybill exists but pickup not scheduled yet
+      return (
+        <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-full bg-orange-100 text-orange-800">
+          Trigger Pickup
+          <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse shrink-0" />
+        </span>
+      );
+    } else {
+      // No waybill yet
+      return (
+        <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-full ${colorClass}`}>
+          Pickup Pending
+        </span>
+      );
+    }
   }
 
   if (ds === "DISPATCHED") {
     return (
       <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-full ${colorClass}`}>
-        Transit
+        In Transit
+        <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shrink-0" />
       </span>
     );
   }
@@ -112,7 +133,12 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
 
         <div className="px-6 py-5 flex flex-col gap-5">
           <div className="flex items-center gap-3">
-            <StatusBadge status={order.status} createdAt={order.createdAt} />
+            <StatusBadge
+              status={order.status}
+              createdAt={order.createdAt}
+              hasWaybill={Boolean(order.delhiveryWaybill)}
+              pickupDate={order.delhiveryPickupDate}
+            />
             <span className="text-xs text-gray-400">{new Date(order.createdAt).toLocaleString("en-IN")}</span>
           </div>
 
@@ -233,6 +259,16 @@ function RowActions({
           >
             View Details
           </button>
+
+          <a
+            href={`https://api.whatsapp.com/send?phone=${order.customerPhone}&text=Hey! Order Reference: ${order.orderRef}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => setOpen(false)}
+            className="block w-full text-left px-4 py-2 text-sm hover:bg-green-50 text-green-700"
+          >
+            WhatsApp Message
+          </a>
 
           {canCreateWaybill && (
             <button
@@ -859,7 +895,12 @@ export default function OrdersPage() {
                   </td>
                   <td className="px-4 py-3 text-right font-bold">₹{o.amount}</td>
                   <td className="px-4 py-3">
-                    <StatusBadge status={o.status} createdAt={o.createdAt} />
+                    <StatusBadge
+                      status={o.status}
+                      createdAt={o.createdAt}
+                      hasWaybill={Boolean(o.delhiveryWaybill)}
+                      pickupDate={o.delhiveryPickupDate}
+                    />
                   </td>
                   <td className="px-4 py-3 font-mono text-xs text-gray-500">{o.delhiveryWaybill || "—"}</td>
                   <td className="px-4 py-3 text-xs text-gray-400">
