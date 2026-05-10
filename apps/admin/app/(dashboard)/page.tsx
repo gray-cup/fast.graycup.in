@@ -461,7 +461,7 @@ function StatCards({ orders, period }: { orders: Order[]; period: Period }) {
   const metricCards = [
     { label: "Revenue", value: `₹${revenue.toLocaleString("en-IN")}`, sub: "from paid orders", color: "bg-emerald-500", track: "bg-emerald-50", num: revenue },
     { label: "Awaiting", value: paid, sub: "to dispatch", color: "bg-orange-400", track: "bg-orange-50", num: paid },
-    { label: "In Transit", value: dispatched, sub: "with courier", color: "bg-violet-500", track: "bg-violet-50", num: dispatched },
+    { label: "Transit", value: dispatched, sub: "with courier", color: "bg-violet-500", track: "bg-violet-50", num: dispatched },
     { label: "Delivered", value: delivered, sub: "completed", color: "bg-green-500", track: "bg-green-50", num: delivered },
     {
       label: "Shipment weight",

@@ -65,7 +65,6 @@ function StatusBadge({ status, createdAt, hasWaybill, pickupDate }: { status: st
       return (
         <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-full bg-emerald-100 text-emerald-800">
           Pickup Soon
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
         </span>
       );
     }
@@ -73,7 +72,6 @@ function StatusBadge({ status, createdAt, hasWaybill, pickupDate }: { status: st
       return (
         <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-full bg-orange-100 text-orange-800">
           Trigger Pickup
-          <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse shrink-0" />
         </span>
       );
     }
@@ -87,8 +85,7 @@ function StatusBadge({ status, createdAt, hasWaybill, pickupDate }: { status: st
   if (ds === "DISPATCHED") {
     return (
       <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-full ${colorClass}`}>
-        In Transit
-        <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shrink-0" />
+        Transit
       </span>
     );
   }
@@ -453,7 +450,7 @@ const FILTERS: { key: Filter; label: string }[] = [
   { key: "all", label: "All" },
   { key: "unfulfilled", label: "Unfulfilled" },
   { key: "pickup-awaiting", label: "Pickup Awaiting" },
-  { key: "in-transit", label: "In Transit" },
+  { key: "in-transit", label: "Transit" },
   { key: "delivered", label: "Delivered" },
 ];
 
