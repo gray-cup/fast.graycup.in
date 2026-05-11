@@ -5,7 +5,7 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { randomBytes } from "crypto";
 import { s3, BUCKET } from "@/lib/s3";
 import { ManualInvoicePdf } from "@/lib/pdf/ManualInvoicePdf";
-import { db, manualInvoices } from "@graycup/db";
+import { db, manualInvoices, ensureManualInvoicesTable } from "@graycup/db";
 
 function generateManualInvoiceNumber(): string {
   const ts = Date.now().toString(36).toUpperCase();
@@ -14,6 +14,7 @@ function generateManualInvoiceNumber(): string {
 }
 
 export async function POST(req: NextRequest) {
+  await ensureManualInvoicesTable();
   try {
     const body = await req.json();
     const {

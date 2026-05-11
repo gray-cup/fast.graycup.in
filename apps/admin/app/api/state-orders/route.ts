@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db, sql } from "@graycup/db";
+import { db, sql, ensureManualInvoicesTable } from "@graycup/db";
 import ranges from "../../../lib/pincode-ranges.json";
 
 const RANGES = ranges as [number, number, string][];
@@ -19,6 +19,8 @@ function pincodeToState(pincode: string): string | null {
 }
 
 export async function GET(req: Request) {
+  try {
+  await ensureManualInvoicesTable();
   const { searchParams } = new URL(req.url);
   const startDate = searchParams.get("startDate");
   const endDate = searchParams.get("endDate");
@@ -31,19 +33,26 @@ export async function GET(req: Request) {
   if (startDate) manualWhere.push(sql`invoice_date >= ${startDate}::date`);
   if (endDate) manualWhere.push(sql`invoice_date <= ${endDate}::date`);
 
-  const [orders, manuals] = await Promise.all([
-    db.execute(sql`
-      SELECT customer_pincode, amount
-      FROM orders
-      WHERE status IN ('PAID', 'PAID_DISPATCH_PENDING', 'DISPATCHED', 'DELIVERED')
-      ${orderWhere.length ? sql`AND ${sql.join(orderWhere, sql` AND `)}` : sql``}
-    `),
-    db.execute(sql`
+  const ordersResult = await db.execute(sql`
+    SELECT customer_pincode, amount
+    FROM orders
+    WHERE status IN ('PAID', 'PAID_DISPATCH_PENDING', 'DISPATCHED', 'DELIVERED')
+    ${orderWhere.length ? sql`AND ${sql.join(orderWhere, sql` AND `)}` : sql``}
+  `);
+
+  let manualsResult: { rows: { buyer_pincode: string; amount: number }[] } = { rows: [] };
+  try {
+    manualsResult = await db.execute(sql`
       SELECT buyer_pincode, amount
       FROM manual_invoices
       ${manualWhere.length ? sql`WHERE ${sql.join(manualWhere, sql` AND `)}` : sql``}
-    `),
-  ]);
+    `);
+  } catch (e) {
+    console.error("manual_invoices query failed (table may not exist yet):", e);
+  }
+
+  const orders = ordersResult;
+  const manuals = manualsResult;
 
   const stateMap = new Map<string, { orders: number; revenue: number }>();
 
@@ -70,4 +79,8 @@ export async function GET(req: Request) {
     .sort((a, b) => b.orders - a.orders);
 
   return NextResponse.json(result);
+  } catch (err) {
+    console.error("state-orders error:", err);
+    return NextResponse.json({ error: String(err) }, { status: 500 });
+  }
 }

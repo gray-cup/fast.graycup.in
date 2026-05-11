@@ -45,6 +45,34 @@ export function ensureOrdersColumns(): Promise<void> {
   return ensureOrdersColumnsPromise;
 }
 
+let ensureManualInvoicesPromise: Promise<void> | null = null;
+export function ensureManualInvoicesTable(): Promise<void> {
+  if (!ensureManualInvoicesPromise) {
+    ensureManualInvoicesPromise = (async () => {
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS manual_invoices (
+          id SERIAL PRIMARY KEY,
+          invoice_number TEXT UNIQUE NOT NULL,
+          buyer_name TEXT NOT NULL,
+          buyer_phone TEXT NOT NULL,
+          buyer_email TEXT,
+          buyer_address TEXT NOT NULL,
+          buyer_pincode TEXT NOT NULL,
+          item_description TEXT NOT NULL,
+          item_variant TEXT,
+          quantity INTEGER NOT NULL DEFAULT 1,
+          amount INTEGER NOT NULL,
+          gst_amount INTEGER NOT NULL DEFAULT 0,
+          upi_transaction_id TEXT NOT NULL,
+          invoice_date TEXT NOT NULL,
+          created_at TIMESTAMP NOT NULL DEFAULT NOW()
+        )
+      `);
+    })();
+  }
+  return ensureManualInvoicesPromise;
+}
+
 export async function generateOrderRef(): Promise<string> {
   const timestamp = Date.now().toString(36).toUpperCase();
   const randomPart = randomBytes(3).toString("hex").toUpperCase();
