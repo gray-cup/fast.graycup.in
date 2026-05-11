@@ -10,6 +10,7 @@ import {
   FolderOpen,
   Tag,
   Map,
+  BarChart2,
   ExternalLink,
   type LucideIcon,
 } from "lucide-react";
@@ -22,6 +23,7 @@ const navItems: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/documents",      label: "Documents",     icon: FolderOpen      },
   { href: "/label-merge",    label: "Label Merge",   icon: Tag             },
   { href: "/order-map",      label: "Order Map",     icon: Map             },
+  { href: "/state-orders",   label: "State Orders",  icon: BarChart2       },
 ];
 
 export default function Sidebar() {
