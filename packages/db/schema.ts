@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, timestamp, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, timestamp, pgEnum, real } from "drizzle-orm/pg-core";
 
 export const orders = pgTable("orders", {
   id: serial("id").primaryKey(),
@@ -45,3 +45,14 @@ export const documents = pgTable("documents", {
 
 export type Document = typeof documents.$inferSelect;
 export type NewDocument = typeof documents.$inferInsert;
+
+export const pincodes = pgTable("pincodes", {
+  pincode: text("pincode").primaryKey(),
+  latitude: real("latitude").notNull(),
+  longitude: real("longitude").notNull(),
+  city: text("city"),
+  state: text("state"),
+  district: text("district"),
+});
+
+export type Pincode = typeof pincodes.$inferSelect;

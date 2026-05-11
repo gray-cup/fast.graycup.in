@@ -10,6 +10,7 @@ const navItems = [
   { href: "/manual-invoice", label: "Manual Invoice", icon: "✍️" },
   { href: "/documents", label: "Documents", icon: "📁" },
   { href: "/label-merge", label: "Label Merge", icon: "🏷️" },
+  { href: "/order-map", label: "Order Map", icon: "🗺️" },
 ];
 
 export default function Sidebar() {
