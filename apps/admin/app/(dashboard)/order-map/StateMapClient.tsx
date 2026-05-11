@@ -235,7 +235,7 @@ export default function StateMapClient({ states }: { states: StateCount[] }) {
         type: "line",
         source: "india-border",
         paint: {
-          "line-color": "#111827",
+          "line-color": "#d1d5db",
           "line-width": 0.7,
           "line-opacity": 1,
         },
