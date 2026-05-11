@@ -11,7 +11,6 @@ type StateCount = {
   expired_count: number;
 };
 
-// Authoritative GeoJSON id → display name (provided by user)
 const ID_TO_NAME: Record<string, string> = {
   INAN: "Andaman and Nicobar",
   INAP: "Andhra Pradesh",
@@ -51,7 +50,6 @@ const ID_TO_NAME: Record<string, string> = {
   INWB: "West Bengal",
 };
 
-// Normalize our API state names to match ID_TO_NAME values for lookup.
 function norm(s: string) {
   return s
     .toLowerCase()
@@ -62,46 +60,32 @@ function norm(s: string) {
     .trim();
 }
 
-// Pre-build: normalised display name → api data
 function buildDataMap(states: StateCount[]) {
-  const map = new Map<string, StateCount>();
-  // Index by normalised form of each ID_TO_NAME value
+  const out = new Map<string, StateCount>();
   const normToId: Record<string, string> = {};
   for (const [id, name] of Object.entries(ID_TO_NAME)) normToId[norm(name)] = id;
 
+  const ALIAS: Record<string, string> = {
+    "andaman and nicobar islands": "INAN",
+    "chattisgarh": "INCT",
+    "odisha": "INOR",
+    "uttarakhand": "INUT",
+    "pondicherry": "INPY",
+    "jammu and kashmir": "INJK",
+  };
+
   for (const s of states) {
     const n = norm(s.state);
-    // direct match
-    if (normToId[n]) { map.set(normToId[n], s); continue; }
-    // alias fallback for old names in our data
-    const ALIAS: Record<string, string> = {
-      "andaman and nicobar islands": "INAN",
-      "chattisgarh": "INCT",
-      "odisha": "INOR",
-      "uttarakhand": "INUT",
-      "pondicherry": "INPY",
-      "jammu and kashmir": "INJK",
-    };
-    if (ALIAS[n]) map.set(ALIAS[n], s);
+    const id = normToId[n] ?? ALIAS[n];
+    if (id) out.set(id, s);
   }
-  return map;
-}
-
-function choroColor(count: number, max: number): string {
-  if (!count || !max) return "#e5e7eb";
-  const t = count / max;
-  if (t < 0.10) return "#fef9c3";
-  if (t < 0.25) return "#fde68a";
-  if (t < 0.45) return "#fbbf24";
-  if (t < 0.65) return "#f97316";
-  if (t < 0.82) return "#ea580c";
-  return "#b91c1c";
+  return out;
 }
 
 const BLANK_STYLE: maplibregl.StyleSpecification = {
   version: 8,
   sources: {},
-  layers: [{ id: "bg", type: "background", paint: { "background-color": "#f1f5f9" } }],
+  layers: [{ id: "bg", type: "background", paint: { "background-color": "#f8fafc" } }],
 };
 
 export default function StateMapClient({ states }: { states: StateCount[] }) {
@@ -117,7 +101,6 @@ export default function StateMapClient({ states }: { states: StateCount[] }) {
       center: [82, 22],
       zoom: 4,
       attributionControl: false,
-      fitBoundsOptions: { padding: 24 },
     });
 
     mapRef.current = map;
@@ -125,7 +108,8 @@ export default function StateMapClient({ states }: { states: StateCount[] }) {
     const popup = new maplibregl.Popup({
       closeButton: false,
       closeOnClick: false,
-      maxWidth: "220px",
+      maxWidth: "240px",
+      offset: 12,
     });
 
     map.on("load", async () => {
@@ -134,14 +118,15 @@ export default function StateMapClient({ states }: { states: StateCount[] }) {
       const dataById = buildDataMap(states);
       const max = Math.max(0, ...states.map((s) => s.successful_count));
 
-      // Augment features: add order counts + canonical display name via id
+      // Give every feature a stable numeric id for feature-state hover
       const augmented: GeoJSON.FeatureCollection = {
         ...geojson,
-        features: geojson.features.map((f) => {
+        features: geojson.features.map((f, i) => {
           const fid = (f.properties as Record<string, string>)?.id ?? "";
           const d = dataById.get(fid);
           return {
             ...f,
+            id: i, // numeric feature id required for setFeatureState
             properties: {
               ...f.properties,
               display_name: ID_TO_NAME[fid] ?? (f.properties as Record<string, string>)?.name ?? fid,
@@ -153,22 +138,24 @@ export default function StateMapClient({ states }: { states: StateCount[] }) {
         }),
       };
 
-      const colorSteps: maplibregl.ExpressionSpecification = [
-        "step",
-        ["get", "successful_count"],
-        "#e5e7eb",
-        1,                                    "#fef9c3",
-        Math.max(1, Math.ceil(max * 0.10)),   "#fde68a",
-        Math.max(2, Math.ceil(max * 0.25)),   "#fbbf24",
-        Math.max(3, Math.ceil(max * 0.45)),   "#f97316",
-        Math.max(4, Math.ceil(max * 0.65)),   "#ea580c",
-        Math.max(5, Math.ceil(max * 0.82)),   "#b91c1c",
-      ];
+      map.fitBounds([[68.1, 6.7], [97.4, 37.1]], { padding: 32, duration: 0 });
 
-      // Fit to India's bounding box
-      map.fitBounds([[68.1, 6.7], [97.4, 37.1]], { padding: 24, duration: 0 });
+      map.addSource("states", { type: "geojson", data: augmented, promoteId: "id" });
 
-      map.addSource("states", { type: "geojson", data: augmented });
+      // Orange → red color steps (white = no orders)
+      const colorSteps: maplibregl.ExpressionSpecification = max === 0
+        ? ["literal", "#ffffff"]
+        : [
+            "step",
+            ["get", "successful_count"],
+            "#ffffff",                                    // 0  → white
+            1,                           "#ffedd5",      // any → lightest orange
+            Math.max(2, Math.ceil(max * 0.15)), "#fed7aa",
+            Math.max(3, Math.ceil(max * 0.30)), "#fb923c",
+            Math.max(4, Math.ceil(max * 0.50)), "#f97316",
+            Math.max(5, Math.ceil(max * 0.70)), "#ea580c",
+            Math.max(6, Math.ceil(max * 0.88)), "#b91c1c",
+          ];
 
       map.addLayer({
         id: "states-fill",
@@ -176,7 +163,12 @@ export default function StateMapClient({ states }: { states: StateCount[] }) {
         source: "states",
         paint: {
           "fill-color": colorSteps,
-          "fill-opacity": ["case", [">", ["get", "successful_count"], 0], 0.78, 0.15],
+          "fill-opacity": [
+            "case",
+            ["boolean", ["feature-state", "hover"], false], 1,
+            ["==", ["get", "successful_count"], 0], 0.6,
+            0.85,
+          ],
         },
       });
 
@@ -184,40 +176,46 @@ export default function StateMapClient({ states }: { states: StateCount[] }) {
         id: "states-border",
         type: "line",
         source: "states",
-        paint: { "line-color": "#92400e", "line-width": 0.8, "line-opacity": 0.6 },
+        paint: {
+          "line-color": "#d1d5db",
+          "line-width": ["case", ["boolean", ["feature-state", "hover"], false], 1.5, 0.7],
+        },
       });
 
-      map.addLayer({
-        id: "states-hover",
-        type: "fill",
-        source: "states",
-        paint: { "fill-color": "#1e293b", "fill-opacity": 0.1 },
-        filter: ["==", ["get", "id"], ""],
-      });
+      let hoveredId: number | null = null;
 
       map.on("mousemove", "states-fill", (e) => {
         if (!e.features?.length) return;
         map.getCanvas().style.cursor = "pointer";
 
-        const p = e.features[0].properties as {
-          id: string;
+        const feat = e.features[0];
+        const newId = feat.id as number;
+
+        if (hoveredId !== null && hoveredId !== newId) {
+          map.setFeatureState({ source: "states", id: hoveredId }, { hover: false });
+        }
+        hoveredId = newId;
+        map.setFeatureState({ source: "states", id: hoveredId }, { hover: true });
+
+        const p = feat.properties as {
           display_name: string;
           successful_count: number;
           expired_count: number;
           total_count: number;
         };
 
-        map.setFilter("states-hover", ["==", ["get", "id"], p.id]);
-
         popup
           .setLngLat(e.lngLat)
           .setHTML(
-            `<div style="font-family:system-ui;padding:2px 0">` +
-            `<div style="font-size:13px;font-weight:600;color:#111827;margin-bottom:6px;border-bottom:1px solid #e5e7eb;padding-bottom:6px">${p.display_name}</div>` +
-            `<div style="font-size:12px;display:flex;flex-direction:column;gap:3px">` +
-            `<div style="display:flex;justify-content:space-between;gap:16px"><span style="color:#6b7280">Successful</span><span style="font-weight:600;color:#16a34a">${p.successful_count}</span></div>` +
-            `<div style="display:flex;justify-content:space-between;gap:16px"><span style="color:#6b7280">Expired</span><span style="font-weight:600;color:#dc2626">${p.expired_count}</span></div>` +
-            `<div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid #e5e7eb;padding-top:4px;margin-top:2px"><span style="color:#6b7280">Total</span><span style="font-weight:600;color:#374151">${p.total_count}</span></div>` +
+            `<div style="font-family:system-ui,sans-serif;padding:2px 0">` +
+            `<div style="font-size:13px;font-weight:700;color:#111827;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid #f3f4f6">${p.display_name}</div>` +
+            `<div style="font-size:12px;display:flex;flex-direction:column;gap:4px">` +
+            `<div style="display:flex;justify-content:space-between;gap:20px">` +
+            `<span style="color:#6b7280">Successful</span><span style="font-weight:600;color:#16a34a">${p.successful_count}</span></div>` +
+            `<div style="display:flex;justify-content:space-between;gap:20px">` +
+            `<span style="color:#6b7280">Expired</span><span style="font-weight:600;color:#dc2626">${p.expired_count}</span></div>` +
+            `<div style="display:flex;justify-content:space-between;gap:20px;margin-top:2px;padding-top:4px;border-top:1px solid #f3f4f6">` +
+            `<span style="color:#6b7280">Total</span><span style="font-weight:600;color:#374151">${p.total_count}</span></div>` +
             `</div></div>`
           )
           .addTo(map);
@@ -225,7 +223,10 @@ export default function StateMapClient({ states }: { states: StateCount[] }) {
 
       map.on("mouseleave", "states-fill", () => {
         map.getCanvas().style.cursor = "";
-        map.setFilter("states-hover", ["==", ["get", "id"], ""]);
+        if (hoveredId !== null) {
+          map.setFeatureState({ source: "states", id: hoveredId }, { hover: false });
+          hoveredId = null;
+        }
         popup.remove();
       });
     });
