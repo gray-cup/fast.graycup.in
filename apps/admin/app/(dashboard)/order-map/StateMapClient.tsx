@@ -32,8 +32,7 @@ function choroColor(count: number, max: number): string {
   return "#b91c1c";
 }
 
-const INDIA_GEOJSON_URL =
-  "https://raw.githubusercontent.com/geohacker/india/master/state/india.geojson";
+const INDIA_GEOJSON_URL = "/india.geojson";
 
 export default function StateMapClient({ states }: { states: StateCount[] }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -82,8 +81,8 @@ export default function StateMapClient({ states }: { states: StateCount[] }) {
           const expired = d?.expired_count ?? 0;
           layer.bindTooltip(
             `<strong>${rawName}</strong>` +
-            `<br>✅ Successful: ${successful}` +
-            `<br>💀 Expired: ${expired}`,
+            `<br>Successful: ${successful}` +
+            `<br>Expired: ${expired}`,
             { sticky: true }
           );
         },
