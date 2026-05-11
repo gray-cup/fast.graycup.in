@@ -158,7 +158,7 @@ export default function StateMapClient({ states }: { states: StateCount[] }) {
       const geojson: GeoJSON.FeatureCollection = await fetch("/india.geojson").then((r) => r.json());
 
       const dataById = buildDataMap(states);
-      const max = Math.max(0, ...states.map((s) => s.successful_count));
+      const max = Math.max(0, ...states.map((s) => s.successful_count + s.manual_count));
 
       // Give every feature a stable numeric id for feature-state hover
       const augmented: GeoJSON.FeatureCollection = {
@@ -195,7 +195,7 @@ export default function StateMapClient({ states }: { states: StateCount[] }) {
         ? ["literal", "#ffffff"]
         : [
             "step",
-            ["get", "successful_count"],
+            ["+", ["get", "successful_count"], ["get", "manual_count"]],
             "#ffffff",                                    // 0  → white
             1,                           "#ffedd5",      // any → lightest orange
             Math.max(2, Math.ceil(max * 0.15)), "#fed7aa",
@@ -214,7 +214,7 @@ export default function StateMapClient({ states }: { states: StateCount[] }) {
           "fill-opacity": [
             "case",
             ["boolean", ["feature-state", "hover"], false], 1,
-            ["==", ["get", "successful_count"], 0], 0.6,
+            ["==", ["+", ["get", "successful_count"], ["get", "manual_count"]], 0], 0.6,
             0.85,
           ],
         },
