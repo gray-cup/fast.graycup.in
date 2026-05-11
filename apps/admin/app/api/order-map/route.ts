@@ -58,5 +58,7 @@ export async function GET() {
     }))
     .sort((a, b) => b.total_count - a.total_count);
 
-  return NextResponse.json(result);
+  return NextResponse.json(result, {
+    headers: { "Cache-Control": "public, max-age=600, stale-while-revalidate=60" },
+  });
 }

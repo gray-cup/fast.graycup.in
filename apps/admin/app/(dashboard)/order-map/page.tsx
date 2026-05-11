@@ -10,6 +10,7 @@ type StateCount = {
   total_count: number;
   successful_count: number;
   expired_count: number;
+  manual_count: number;
 };
 
 export default function OrderMapPage() {
