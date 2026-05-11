@@ -1,30 +1,96 @@
 "use client";
 
-import "leaflet/dist/leaflet.css";
+import "maplibre-gl/dist/maplibre-gl.css";
 import { useEffect, useRef } from "react";
+import maplibregl from "maplibre-gl";
 
-type StateCount = { state: string; total_count: number; expired_count: number; successful_count: number };
-
-// Normalize state names so our pincode-file names match GeoJSON NAME_1 values.
-// GeoJSON source: https://raw.githubusercontent.com/geohacker/india/master/state/india.geojson
-const NORMALIZE: Record<string, string> = {
-  "andaman & nicobar islands": "andaman and nicobar",
-  "chattisgarh": "chhattisgarh",
-  "jammu & kashmir": "jammu and kashmir",
-  "pondicherry": "puducherry",
-  "dadra and nagar haveli and daman and diu": "dadra and nagar haveli",
-  "nct of delhi": "delhi",
+type StateCount = {
+  state: string;
+  total_count: number;
+  successful_count: number;
+  expired_count: number;
 };
 
+// Authoritative GeoJSON id → display name (provided by user)
+const ID_TO_NAME: Record<string, string> = {
+  INAN: "Andaman and Nicobar",
+  INAP: "Andhra Pradesh",
+  INAR: "Arunachal Pradesh",
+  INAS: "Assam",
+  INBR: "Bihar",
+  INCH: "Chandigarh",
+  INCT: "Chhattisgarh",
+  INDH: "Dadra and Nagar Haveli and Daman and Diu",
+  INDL: "Delhi",
+  INGA: "Goa",
+  INGJ: "Gujarat",
+  INHP: "Himachal Pradesh",
+  INHR: "Haryana",
+  INJH: "Jharkhand",
+  INJK: "Jammu and Kashmir",
+  INKA: "Karnataka",
+  INKL: "Kerala",
+  INLA: "Ladakh",
+  INLD: "Lakshadweep",
+  INMH: "Maharashtra",
+  INML: "Meghalaya",
+  INMN: "Manipur",
+  INMP: "Madhya Pradesh",
+  INMZ: "Mizoram",
+  INNL: "Nagaland",
+  INOR: "Odisha",
+  INPB: "Punjab",
+  INPY: "Puducherry",
+  INRJ: "Rajasthan",
+  INSK: "Sikkim",
+  INTG: "Telangana",
+  INTN: "Tamil Nadu",
+  INTR: "Tripura",
+  INUP: "Uttar Pradesh",
+  INUT: "Uttarakhand",
+  INWB: "West Bengal",
+};
+
+// Normalize our API state names to match ID_TO_NAME values for lookup.
 function norm(s: string) {
-  const lower = s.toLowerCase().trim();
-  return NORMALIZE[lower] ?? lower;
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/&/g, "and")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+// Pre-build: normalised display name → api data
+function buildDataMap(states: StateCount[]) {
+  const map = new Map<string, StateCount>();
+  // Index by normalised form of each ID_TO_NAME value
+  const normToId: Record<string, string> = {};
+  for (const [id, name] of Object.entries(ID_TO_NAME)) normToId[norm(name)] = id;
+
+  for (const s of states) {
+    const n = norm(s.state);
+    // direct match
+    if (normToId[n]) { map.set(normToId[n], s); continue; }
+    // alias fallback for old names in our data
+    const ALIAS: Record<string, string> = {
+      "andaman and nicobar islands": "INAN",
+      "chattisgarh": "INCT",
+      "odisha": "INOR",
+      "uttarakhand": "INUT",
+      "pondicherry": "INPY",
+      "jammu and kashmir": "INJK",
+    };
+    if (ALIAS[n]) map.set(ALIAS[n], s);
+  }
+  return map;
 }
 
 function choroColor(count: number, max: number): string {
-  if (count === 0 || max === 0) return "#f3f4f6";
+  if (!count || !max) return "#e5e7eb";
   const t = count / max;
-  if (t < 0.1) return "#fef9c3";
+  if (t < 0.10) return "#fef9c3";
   if (t < 0.25) return "#fde68a";
   if (t < 0.45) return "#fbbf24";
   if (t < 0.65) return "#f97316";
@@ -32,89 +98,146 @@ function choroColor(count: number, max: number): string {
   return "#b91c1c";
 }
 
-const INDIA_GEOJSON_URL = "/india.geojson";
+const OSM_STYLE: maplibregl.StyleSpecification = {
+  version: 8,
+  sources: {
+    osm: {
+      type: "raster",
+      tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+      tileSize: 256,
+      attribution: "© OpenStreetMap contributors",
+    },
+  },
+  layers: [{ id: "osm", type: "raster", source: "osm", paint: { "raster-opacity": 0.35 } }],
+};
 
 export default function StateMapClient({ states }: { states: StateCount[] }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<maplibregl.Map | null>(null);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || mapRef.current) return;
 
-    let map: import("leaflet").Map;
+    const map = new maplibregl.Map({
+      container: containerRef.current,
+      style: OSM_STYLE,
+      center: [82, 22],
+      zoom: 4.2,
+      attributionControl: { compact: true },
+    });
 
-    (async () => {
-      const L = (await import("leaflet")).default;
-      const geojson = await fetch(INDIA_GEOJSON_URL).then((r) => r.json());
+    mapRef.current = map;
 
-      const dataByState = new Map<string, StateCount>();
-      states.forEach((s) => dataByState.set(norm(s.state), s));
+    const popup = new maplibregl.Popup({
+      closeButton: false,
+      closeOnClick: false,
+      maxWidth: "220px",
+    });
+
+    map.on("load", async () => {
+      const geojson: GeoJSON.FeatureCollection = await fetch("/india.geojson").then((r) => r.json());
+
+      const dataById = buildDataMap(states);
       const max = Math.max(0, ...states.map((s) => s.successful_count));
 
-      map = L.map(containerRef.current!, {
-        center: [22.5, 80.5],
-        zoom: 5,
-        zoomControl: true,
+      // Augment features: add order counts + canonical display name via id
+      const augmented: GeoJSON.FeatureCollection = {
+        ...geojson,
+        features: geojson.features.map((f) => {
+          const fid = (f.properties as Record<string, string>)?.id ?? "";
+          const d = dataById.get(fid);
+          return {
+            ...f,
+            properties: {
+              ...f.properties,
+              display_name: ID_TO_NAME[fid] ?? (f.properties as Record<string, string>)?.name ?? fid,
+              successful_count: d?.successful_count ?? 0,
+              expired_count: d?.expired_count ?? 0,
+              total_count: d?.total_count ?? 0,
+            },
+          };
+        }),
+      };
+
+      const colorSteps: maplibregl.ExpressionSpecification = [
+        "step",
+        ["get", "successful_count"],
+        "#e5e7eb",
+        1,                                    "#fef9c3",
+        Math.max(1, Math.ceil(max * 0.10)),   "#fde68a",
+        Math.max(2, Math.ceil(max * 0.25)),   "#fbbf24",
+        Math.max(3, Math.ceil(max * 0.45)),   "#f97316",
+        Math.max(4, Math.ceil(max * 0.65)),   "#ea580c",
+        Math.max(5, Math.ceil(max * 0.82)),   "#b91c1c",
+      ];
+
+      map.addSource("states", { type: "geojson", data: augmented });
+
+      map.addLayer({
+        id: "states-fill",
+        type: "fill",
+        source: "states",
+        paint: {
+          "fill-color": colorSteps,
+          "fill-opacity": ["case", [">", ["get", "successful_count"], 0], 0.78, 0.15],
+        },
       });
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        maxZoom: 19,
-        opacity: 0.4,
-      }).addTo(map);
+      map.addLayer({
+        id: "states-border",
+        type: "line",
+        source: "states",
+        paint: { "line-color": "#92400e", "line-width": 0.8, "line-opacity": 0.6 },
+      });
 
-      L.geoJSON(geojson, {
-        style(feature) {
-          const name = norm(feature?.properties?.NAME_1 ?? "");
-          const d = dataByState.get(name);
-          const count = d?.successful_count ?? 0;
-          return {
-            fillColor: choroColor(count, max),
-            fillOpacity: count > 0 ? 0.75 : 0.2,
-            color: "#92400e",
-            weight: 1,
-          };
-        },
-        onEachFeature(feature, layer) {
-          const rawName: string = feature?.properties?.NAME_1 ?? "";
-          const d = dataByState.get(norm(rawName));
-          const successful = d?.successful_count ?? 0;
-          const expired = d?.expired_count ?? 0;
-          layer.bindTooltip(
-            `<strong>${rawName}</strong>` +
-            `<br>Successful: ${successful}` +
-            `<br>Expired: ${expired}`,
-            { sticky: true }
-          );
-        },
-      }).addTo(map);
+      map.addLayer({
+        id: "states-hover",
+        type: "fill",
+        source: "states",
+        paint: { "fill-color": "#1e293b", "fill-opacity": 0.1 },
+        filter: ["==", ["get", "id"], ""],
+      });
 
-      // Legend
-      const legend = new L.Control({ position: "bottomright" });
-      legend.onAdd = () => {
-        const div = L.DomUtil.create("div", "");
-        div.style.cssText =
-          "background:white;padding:10px 14px;border-radius:8px;border:1px solid #e5e7eb;font-size:12px;line-height:1.8";
-        const steps = [
-          { color: "#f3f4f6", label: "No orders" },
-          { color: "#fde68a", label: "Low" },
-          { color: "#fbbf24", label: "Medium" },
-          { color: "#f97316", label: "High" },
-          { color: "#b91c1c", label: "Highest" },
-        ];
-        div.innerHTML = steps
-          .map(
-            (s) =>
-              `<div style="display:flex;align-items:center;gap:8px">` +
-              `<span style="width:14px;height:14px;border-radius:3px;background:${s.color};display:inline-block;border:1px solid #d1d5db"></span>` +
-              `${s.label}</div>`
+      map.on("mousemove", "states-fill", (e) => {
+        if (!e.features?.length) return;
+        map.getCanvas().style.cursor = "pointer";
+
+        const p = e.features[0].properties as {
+          id: string;
+          display_name: string;
+          successful_count: number;
+          expired_count: number;
+          total_count: number;
+        };
+
+        map.setFilter("states-hover", ["==", ["get", "id"], p.id]);
+
+        popup
+          .setLngLat(e.lngLat)
+          .setHTML(
+            `<div style="font-family:system-ui;padding:2px 0">` +
+            `<div style="font-size:13px;font-weight:600;color:#111827;margin-bottom:6px;border-bottom:1px solid #e5e7eb;padding-bottom:6px">${p.display_name}</div>` +
+            `<div style="font-size:12px;display:flex;flex-direction:column;gap:3px">` +
+            `<div style="display:flex;justify-content:space-between;gap:16px"><span style="color:#6b7280">Successful</span><span style="font-weight:600;color:#16a34a">${p.successful_count}</span></div>` +
+            `<div style="display:flex;justify-content:space-between;gap:16px"><span style="color:#6b7280">Expired</span><span style="font-weight:600;color:#dc2626">${p.expired_count}</span></div>` +
+            `<div style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid #e5e7eb;padding-top:4px;margin-top:2px"><span style="color:#6b7280">Total</span><span style="font-weight:600;color:#374151">${p.total_count}</span></div>` +
+            `</div></div>`
           )
-          .join("");
-        return div;
-      };
-      legend.addTo(map);
-    })();
+          .addTo(map);
+      });
 
-    return () => { map?.remove(); };
+      map.on("mouseleave", "states-fill", () => {
+        map.getCanvas().style.cursor = "";
+        map.setFilter("states-hover", ["==", ["get", "id"], ""]);
+        popup.remove();
+      });
+    });
+
+    return () => {
+      popup.remove();
+      map.remove();
+      mapRef.current = null;
+    };
   }, [states]);
 
   return <div ref={containerRef} style={{ position: "absolute", inset: 0 }} />;
