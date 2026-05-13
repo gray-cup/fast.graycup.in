@@ -6,26 +6,30 @@ const BASE_URL =
     ? "https://dale.shadowfax.in/api"
     : "https://dale.staging.shadowfax.in/api";
 
-const WAREHOUSE_ADDRESS =
-  process.env.SHADOWFAX_WAREHOUSE_ADDRESS ||
-  "FF122, Rodeo Drive Mall, GT Road, TDI City, Kundli, Sonipat, Haryana 131030";
-
+// Warehouse / pickup address — where Shadowfax collects the parcel from
+const WAREHOUSE_ADDRESS_LINE = process.env.SHADOWFAX_WAREHOUSE_ADDRESS || "Gate no.1, Police Colony, Pocket-6, Sector A5";
+const WAREHOUSE_CITY = process.env.SHADOWFAX_WAREHOUSE_CITY || "Narela";
+const WAREHOUSE_STATE = process.env.SHADOWFAX_WAREHOUSE_STATE || "Delhi";
+const WAREHOUSE_PINCODE = parseInt(process.env.SHADOWFAX_WAREHOUSE_PINCODE || "110040", 10);
+const WAREHOUSE_CONTACT = process.env.SHADOWFAX_WAREHOUSE_CONTACT || "";
 
 const SELLER_GSTIN = "06AAMCG4985H1Z4";
-const SELLER_STATE = "Haryana";
 const SELLER_NAME = "Gray Cup Enterprises";
-const HSN_CODE = "2008"; // prepared/processed nuts & dried fruits
+const HSN_CODE = "2008";
 
 export interface ShadowfaxOrderInput {
   orderRef: string;
   customerName: string;
   customerPhone: string;
   address: string;
-  city: string;
+  city?: string;
+  state?: string;
   pincode: string;
   productDesc: string;
   totalAmount: number;
   gstAmount: number;
+  weightGrams?: number;
+  quantity?: number;
 }
 
 export interface ShadowfaxResponse {
@@ -40,43 +44,62 @@ export async function createShadowfaxOrder(input: ShadowfaxOrderInput): Promise<
   const baseAmount = input.totalAmount - input.gstAmount;
   const halfGst = input.gstAmount / 2;
 
+  const warehouseDetails = {
+    name: SELLER_NAME,
+    contact: WAREHOUSE_CONTACT,
+    address_line_1: WAREHOUSE_ADDRESS_LINE,
+    city: WAREHOUSE_CITY,
+    state: WAREHOUSE_STATE,
+    pincode: WAREHOUSE_PINCODE,
+  };
+
   const body = {
-    client_order_number: input.orderRef,
-    warehouse_address: WAREHOUSE_ADDRESS,
-    destination_pincode: parseInt(input.pincode, 10),
-    pickup_type: "regular",
-    price: baseAmount,
-    address_attributes: {
-      address_line: input.address,
-      city: input.city,
-      pincode: parseInt(input.pincode, 10),
-      name: input.customerName,
-      phone_number: input.customerPhone,
+    order_type: "marketplace",
+    order_details: {
+      client_order_id: input.orderRef,
+      actual_weight: input.weightGrams ?? 0,
+      product_value: baseAmount,
+      payment_mode: "Prepaid",
+      cod_amount: 0,
+      order_service: "regular",
     },
-    skus_attributes: [
+    customer_details: {
+      name: input.customerName,
+      contact: input.customerPhone,
+      address_line_1: input.address,
+      city: input.city ?? "",
+      state: input.state ?? "",
+      pincode: parseInt(input.pincode, 10),
+    },
+    pickup_details: warehouseDetails,
+    rts_details: warehouseDetails,
+    product_details: [
       {
-        name: input.productDesc,
+        sku_name: input.productDesc,
+        hsn_code: HSN_CODE,
+        invoice_no: input.orderRef,
         price: baseAmount,
         seller_details: {
-          regd_name: SELLER_NAME,
-          regd_address: WAREHOUSE_ADDRESS,
-          state: SELLER_STATE,
-          gstin: SELLER_GSTIN,
+          seller_name: SELLER_NAME,
+          seller_address: WAREHOUSE_ADDRESS_LINE,
+          seller_state: WAREHOUSE_STATE,
+          gstin_number: SELLER_GSTIN,
         },
         taxes: {
-          cgst_amount: halfGst,
-          sgst_amount: halfGst,
-          igst_amount: 0,
-          total_tax_amount: input.gstAmount,
+          cgst: halfGst,
+          sgst: halfGst,
+          igst: 0,
+          total_tax: input.gstAmount,
         },
-        hsn_code: HSN_CODE,
-        invoice_id: input.orderRef,
+        additional_details: {
+          quantity: input.quantity ?? 1,
+        },
       },
     ],
   };
 
   try {
-    const res = await fetch(`${BASE_URL}/v3/clients/requests`, {
+    const res = await fetch(`${BASE_URL}/v3/clients/orders/`, {
       method: "POST",
       headers: {
         Authorization: `Token ${SHADOWFAX_TOKEN}`,
@@ -91,9 +114,8 @@ export async function createShadowfaxOrder(input: ShadowfaxOrderInput): Promise<
       return { success: false, error: JSON.stringify(data).slice(0, 300) };
     }
 
-    if (data.client_request_id) {
-      return { success: true, requestId: data.client_request_id };
-    }
+    const awb = data.data?.awb_number;
+    if (awb) return { success: true, requestId: awb };
 
     return { success: false, error: data.message || JSON.stringify(data).slice(0, 300) };
   } catch (err) {
@@ -102,34 +124,34 @@ export async function createShadowfaxOrder(input: ShadowfaxOrderInput): Promise<
 }
 
 export async function trackMultipleShadowfaxOrders(
-  requestIds: string[]
+  awbNumbers: string[]
 ): Promise<Record<string, { status: string; currentLocation: string }>> {
-  if (!SHADOWFAX_TOKEN || requestIds.length === 0) return {};
+  if (!SHADOWFAX_TOKEN || awbNumbers.length === 0) return {};
 
-  // Shadowfax bulk_query supports up to 50 at a time
   const result: Record<string, { status: string; currentLocation: string }> = {};
   const chunks: string[][] = [];
-  for (let i = 0; i < requestIds.length; i += 50) chunks.push(requestIds.slice(i, i + 50));
+  for (let i = 0; i < awbNumbers.length; i += 50) chunks.push(awbNumbers.slice(i, i + 50));
 
   for (const chunk of chunks) {
     try {
-      const res = await fetch(`${BASE_URL}/v4/clients/requests/bulk_query`, {
+      const res = await fetch(`${BASE_URL}/v3/clients/orders/track/`, {
         method: "POST",
         headers: {
           Authorization: `Token ${SHADOWFAX_TOKEN}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ request_ids: chunk }),
+        body: JSON.stringify({ awb_numbers: chunk }),
       });
       if (!res.ok) continue;
       const data = await res.json();
-      for (const [requestId, histories] of Object.entries(data)) {
-        const arr = (histories as any[]);
-        const latest = arr?.[arr.length - 1];
-        if (latest) {
-          result[requestId] = {
-            status: latest.status ?? latest.state ?? "",
-            currentLocation: latest.current_location ?? "",
+      const orders = data.data ?? data;
+      for (const order of Array.isArray(orders) ? orders : Object.values(orders)) {
+        const o = order as any;
+        const awb = o.awb_number ?? o.awb;
+        if (awb) {
+          result[awb] = {
+            status: o.status ?? o.status_display ?? "",
+            currentLocation: o.current_location ?? o.city ?? "",
           };
         }
       }
@@ -145,40 +167,33 @@ export function mapShadowfaxStatus(state: string): string | null {
   const s = state?.toLowerCase().trim() ?? "";
   if (!s) return null;
 
-  if (["returned to client", "bag received"].includes(s)) return "DELIVERED";
-  if (s === "cancelled") return "CANCELLED";
-  if (["lost", "qc failed", "undelivered"].includes(s)) return "RETURNED";
-  if (
-    ["picked", "received", "bag in transit", "received at return dc",
-     "item added to bag", "in transit for return", "bag in transit",
-     "item misrouted"].includes(s)
-  ) return "DISPATCHED";
-  if (["assigned", "out for pickup"].includes(s)) return "PAID_DISPATCH_PENDING";
+  if (s === "delivered") return "DELIVERED";
+  if (["cancelled_by_customer", "cancelled"].includes(s)) return "CANCELLED";
+  if (["rts", "lost", "undelivered"].includes(s)) return "RETURNED";
+  if (["ofd", "in_transit", "dispatched"].includes(s)) return "DISPATCHED";
+  if (["assigned_for_pickup", "new", "created"].includes(s)) return "PAID_DISPATCH_PENDING";
 
   return null;
 }
 
 export async function cancelShadowfaxOrder(
-  requestId: string
+  awbNumber: string
 ): Promise<{ success: boolean; error?: string }> {
   if (!SHADOWFAX_TOKEN) return { success: false, error: "SHADOWFAX_TOKEN not configured" };
   try {
-    const res = await fetch(`${BASE_URL}/v2/clients/requests/mark_cancel`, {
+    const res = await fetch(`${BASE_URL}/v3/clients/orders/cancel/`, {
       method: "POST",
       headers: {
         Authorization: `Token ${SHADOWFAX_TOKEN}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        request_id: requestId,
-        cancel_remarks: "Cancelled By Customer",
-      }),
+      body: JSON.stringify({ awb_number: awbNumber }),
     });
     const data = await res.json();
-    if (data.responseCode === 200 || data.responseMsg?.toLowerCase().includes("cancel")) {
+    if (res.ok && (data.message?.toLowerCase().includes("success") || data.message?.toLowerCase().includes("cancel"))) {
       return { success: true };
     }
-    return { success: false, error: data.responseMsg || JSON.stringify(data) };
+    return { success: false, error: data.message || data.errors || JSON.stringify(data) };
   } catch (err) {
     return { success: false, error: String(err) };
   }

@@ -26,11 +26,12 @@ export async function POST(req: NextRequest) {
       customerName: order.customerName,
       customerPhone: order.customerPhone,
       address: order.customerAddress,
-      city: "",
       pincode: order.customerPincode,
       productDesc: `${order.productName} ${order.variantLabel} x${order.quantity}`,
       totalAmount: order.amount,
       gstAmount: order.gstAmount,
+      weightGrams: order.totalWeightGrams ?? undefined,
+      quantity: order.quantity,
     });
 
     if (result.success && result.requestId) {
