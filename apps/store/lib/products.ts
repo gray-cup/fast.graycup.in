@@ -20,6 +20,7 @@ export interface Product {
 }
 
 export const GST_RATE = 0.05; // Tea and coffee: 5% GST
+export const FREE_DELIVERY_THRESHOLD = 1000; // free delivery on orders ₹1000+
 
 export function gstAmount(price: number): number {
   return Math.round(price * GST_RATE);
@@ -62,6 +63,21 @@ export const products: Product[] = [
       { label: "1kg (2 Packs)", weightGrams: 1000, price: 750, deliveryCharge: 30, batchId: "GRAYB1" },
       { label: "1.5kg (3 Packs)", weightGrams: 1500, price: 1100, deliveryCharge: 0, batchId: "GRAYB1" },
       { label: "2kg (4 Packs)", weightGrams: 2000, price: 1450, deliveryCharge: 0, batchId: "GRAYB1" },
+    ],
+  },
+  {
+    id: "giddapahar-orthodox",
+    slug: "giddapahar-orthodox",
+    name: "Giddapahar Orthodox",
+    tagline: "Single-estate Darjeeling",
+    description:
+      "Single-estate Orthodox tea from Giddapahar, Darjeeling. Whole-leaf, hand-crafted, with a naturally sweet muscatel character.",
+    category: "CTC Tea",
+    image_url: "/500gm.png",
+    origin: "Darjeeling, India",
+    variants: [
+      { label: "50gm", weightGrams: 50, price: 200, deliveryCharge: 30, batchId: "GRAYB1" },
+      { label: "100gm", weightGrams: 100, price: 340, deliveryCharge: 30, batchId: "GRAYB1" },
     ],
   },
 ];

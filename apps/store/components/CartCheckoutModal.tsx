@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useCart } from "@/lib/cart";
+import { FREE_DELIVERY_THRESHOLD } from "@/lib/products";
 import StateSelect from "@/components/StateSelect";
 
 
@@ -25,7 +26,7 @@ export default function CartCheckoutModal({ onClose }: { onClose: () => void }) 
   const overlayRef = useRef<HTMLDivElement>(null);
 
   const subtotal = items.reduce((s, i) => s + i.product.variants[i.variantIndex].price * i.quantity, 0);
-  const totalDelivery = items.reduce((s, i) => s + (i.product.variants[i.variantIndex].deliveryCharge ?? 0) * i.quantity, 0);
+  const totalDelivery = subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : items.reduce((s, i) => s + (i.product.variants[i.variantIndex].deliveryCharge ?? 0) * i.quantity, 0);
   const total = subtotal + totalDelivery;
 
   useEffect(() => {
@@ -127,12 +128,13 @@ export default function CartCheckoutModal({ onClose }: { onClose: () => void }) 
                 </div>
               );
             })}
-            {totalDelivery > 0 && (
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Delivery</span>
-                <span className="text-gray-700">₹{totalDelivery}</span>
-              </div>
-            )}
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-500">Delivery</span>
+              {totalDelivery > 0
+                ? <span className="text-gray-700">₹{totalDelivery}</span>
+                : <span className="text-green-600 font-semibold">Free</span>
+              }
+            </div>
             <div className="border-t border-gray-200 mt-1 pt-2 flex justify-between">
               <span className="font-black text-gray-900">Total</span>
               <span className="font-black text-2xl text-gray-900">₹{total}</span>

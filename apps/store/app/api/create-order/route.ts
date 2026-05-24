@@ -4,7 +4,7 @@ import { ensureOrdersColumns } from "@graycup/db";
 import { db, generateOrderRef } from "@/lib/db";
 import { orders } from "@/lib/db/schema";
 import { getPincodeDetails } from "@/lib/delhivery";
-import { products } from "@/lib/products";
+import { products, FREE_DELIVERY_THRESHOLD } from "@/lib/products";
 
 export function orderToken(orderRef: string): string {
   const secret = process.env.CASHFREE_SECRET_KEY ?? "fallback";
@@ -85,22 +85,26 @@ function computeOrderWeights(body: OrderPayload): {
 
 function computeAmount(payload: OrderPayload): number | null {
   if (payload.items && payload.items.length > 0) {
-    let total = 0;
+    let subtotal = 0;
+    let deliveryIfCharged = 0;
     for (const item of payload.items) {
       const product = products.find((p) => p.id === item.productId);
       if (!product) return null;
       const variant = product.variants.find((v) => v.label === item.variantLabel);
       if (!variant) return null;
-      total += variant.price * item.quantity + (variant.deliveryCharge ?? 0) * item.quantity;
+      subtotal += variant.price * item.quantity;
+      deliveryIfCharged += (variant.deliveryCharge ?? 0) * item.quantity;
     }
-    return total;
+    return subtotal + (subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : deliveryIfCharged);
   }
   if (payload.productId && payload.variantLabel && payload.quantity) {
     const product = products.find((p) => p.id === payload.productId);
     if (!product) return null;
     const variant = product.variants.find((v) => v.label === payload.variantLabel);
     if (!variant) return null;
-    return variant.price * payload.quantity + (variant.deliveryCharge ?? 0);
+    const subtotal = variant.price * payload.quantity;
+    const delivery = subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : (variant.deliveryCharge ?? 0);
+    return subtotal + delivery;
   }
   return null;
 }
