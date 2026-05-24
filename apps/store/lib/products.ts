@@ -58,7 +58,10 @@ export const products: Product[] = [
       "/500gm.png",
     origin: "Assam, India",
     variants: [
-      { label: "500gm", weightGrams: 500, price: 360, deliveryCharge: 30, batchId: "GRAYB1" },
+      { label: "500gm (1 Pack)", weightGrams: 500, price: 395, deliveryCharge: 30, batchId: "GRAYB1" },
+      { label: "1kg (2 Packs)", weightGrams: 1000, price: 750, deliveryCharge: 30, batchId: "GRAYB1" },
+      { label: "1.5kg (3 Packs)", weightGrams: 1500, price: 1100, deliveryCharge: 0, batchId: "GRAYB1" },
+      { label: "2kg (4 Packs)", weightGrams: 2000, price: 1450, deliveryCharge: 0, batchId: "GRAYB1" },
     ],
   },
 ];
