@@ -73,7 +73,7 @@ export const products: Product[] = [
     description:
       "Single-estate Orthodox tea from Giddapahar, Darjeeling. Whole-leaf, hand-crafted, with a naturally sweet muscatel character.",
     category: "CTC Tea",
-    image_url: "/500gm.png",
+    image_url: "/giddapahar.png",
     origin: "Darjeeling, India",
     variants: [
       { label: "50gm", weightGrams: 50, price: 200, deliveryCharge: 30, batchId: "GRAYB1" },
