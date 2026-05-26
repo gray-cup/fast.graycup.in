@@ -77,7 +77,7 @@ export const products: Product[] = [
     origin: "Darjeeling, India",
     variants: [
       { label: "50gm", weightGrams: 50, price: 200, deliveryCharge: 30, batchId: "GRAYBD1" },
-      { label: "100gm", weightGrams: 100, price: 340, deliveryCharge: 30, batchId: "GRAYBD1" },
+      { label: "100gm", weightGrams: 100, price: 330, deliveryCharge: 30, batchId: "GRAYBD1" },
     ],
   },
 ];
