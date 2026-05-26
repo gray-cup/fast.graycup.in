@@ -93,8 +93,11 @@ function SuccessContent() {
         <h1 className="text-4xl sm:text-5xl font-black text-gray-900 mb-4 leading-tight">
           Thank you!
         </h1>
-        <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+        <p className="text-xl text-gray-600 mb-6 leading-relaxed">
           Your order is confirmed. You&apos;ll receive your product within 2–5 days.
+        </p>
+        <p className="text-sm text-gray-400 mb-8">
+          Your invoice will be sent to your email by Cashfree.
         </p>
 
         <div className="bg-amber-50 rounded-2xl p-6 mb-8 text-left space-y-3">
