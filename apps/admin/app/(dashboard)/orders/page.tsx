@@ -363,7 +363,7 @@ function RowActions({
             </button>
           )}
 
-          {["DISPATCHED", "PAID_DISPATCH_PENDING"].includes(normalizedStatus) && (
+          {["PAID", "DISPATCHED", "PAID_DISPATCH_PENDING"].includes(normalizedStatus) && (
             <button
               onClick={() => { onMarkDelivered(); setOpen(false); }}
               disabled={busy}
