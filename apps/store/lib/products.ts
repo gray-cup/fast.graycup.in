@@ -50,8 +50,8 @@ export const products: Product[] = [
   {
     id: "ctc-blend-500",
     slug: "ctc-blend",
-    name: "CTC + Orthodox Blend (Early Access)",
-    tagline: "Early Access 500gm Pack",
+    name: "CTC + Orthodox Blend",
+    tagline: "500gm Pack",
     description:
       "500gm of Assam & Dooars CTC + Orthodox blend, Grade includes BOPSM, BP, OF, DJ and GFOP from Dooars and Assam with no Artificial Additives.",
     category: "CTC Tea",
@@ -76,8 +76,8 @@ export const products: Product[] = [
     image_url: "/giddapahar.png",
     origin: "Darjeeling, India",
     variants: [
-      { label: "50gm", weightGrams: 50, price: 200, deliveryCharge: 30, batchId: "GRAYB1" },
-      { label: "100gm", weightGrams: 100, price: 340, deliveryCharge: 30, batchId: "GRAYB1" },
+      { label: "50gm", weightGrams: 50, price: 200, deliveryCharge: 30, batchId: "GRAYBD1" },
+      { label: "100gm", weightGrams: 100, price: 340, deliveryCharge: 30, batchId: "GRAYBD1" },
     ],
   },
 ];
