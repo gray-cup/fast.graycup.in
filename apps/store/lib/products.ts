@@ -66,9 +66,9 @@ export const products: Product[] = [
     ],
   },
   {
-    id: "giddapahar-orthodox",
-    slug: "giddapahar-orthodox",
-    name: "Giddapahar Orthodox",
+    id: "giddapahar-darjeeling-orthodox",
+    slug: "giddapahar-darjeeling-orthodox",
+    name: "Giddapahar Darjeeling Orthodox",
     tagline: "Single-estate Darjeeling",
     description:
       "Single-estate Orthodox tea from Giddapahar, Darjeeling. Whole-leaf, hand-crafted, with a naturally sweet muscatel character.",
