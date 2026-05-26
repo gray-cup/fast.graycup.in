@@ -34,7 +34,8 @@ function InTransitOrders() {
     fetch("/api/orders")
       .then((r) => r.json())
       .then((data: any[]) => {
-        setOrders(data.filter((o) => o.status?.trim().toUpperCase() === "DISPATCHED"));
+        const active = ["PAID", "PAID_DISPATCH_PENDING", "DISPATCHED"];
+        setOrders(data.filter((o) => active.includes(o.status?.trim().toUpperCase())));
       })
       .catch(() => setOrders([]))
       .finally(() => setLoading(false));
@@ -69,8 +70,8 @@ function InTransitOrders() {
     <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
       <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
         <div>
-          <h2 className="font-bold text-gray-800">Orders In Transit</h2>
-          <p className="text-xs text-gray-400 mt-0.5">Manual orders stuck in dispatched — mark as delivered here</p>
+          <h2 className="font-bold text-gray-800">Unresolved Orders</h2>
+          <p className="text-xs text-gray-400 mt-0.5">Paid, awaiting, or in-transit orders — mark as delivered if fulfilled manually</p>
         </div>
         <button onClick={load} className="text-xs text-gray-400 hover:text-gray-600 transition-colors">Refresh</button>
       </div>
@@ -86,7 +87,7 @@ function InTransitOrders() {
           <div className="w-6 h-6 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : orders.length === 0 ? (
-        <div className="py-10 text-center text-sm text-gray-400">No orders in transit</div>
+        <div className="py-10 text-center text-sm text-gray-400">No unresolved orders</div>
       ) : (
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-100">
