@@ -9,6 +9,127 @@ type SavedInvoice = {
   lastModified: string | null;
 };
 
+type DispatchedOrder = {
+  orderRef: string;
+  productName: string;
+  variantLabel: string;
+  quantity: number;
+  amount: number;
+  customerName: string;
+  customerPhone: string;
+  delhiveryWaybill: string | null;
+  shadowfaxRequestId: string | null;
+  carrier: string | null;
+  createdAt: string;
+};
+
+function InTransitOrders() {
+  const [orders, setOrders] = useState<DispatchedOrder[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [marking, setMarking] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ type: "success" | "error"; msg: string } | null>(null);
+
+  const load = () => {
+    setLoading(true);
+    fetch("/api/orders")
+      .then((r) => r.json())
+      .then((data: any[]) => {
+        setOrders(data.filter((o) => o.status?.trim().toUpperCase() === "DISPATCHED"));
+      })
+      .catch(() => setOrders([]))
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const markDelivered = async (orderRef: string) => {
+    setMarking(orderRef);
+    try {
+      const res = await fetch(`/api/orders/${orderRef}/mark-delivered`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ awb: "" }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setToast({ type: "success", msg: `${orderRef} marked as delivered` });
+        setOrders((prev) => prev.filter((o) => o.orderRef !== orderRef));
+      } else {
+        setToast({ type: "error", msg: data.error || "Failed" });
+      }
+    } catch {
+      setToast({ type: "error", msg: "Request failed" });
+    } finally {
+      setMarking(null);
+      setTimeout(() => setToast(null), 3500);
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+      <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <div>
+          <h2 className="font-bold text-gray-800">Orders In Transit</h2>
+          <p className="text-xs text-gray-400 mt-0.5">Manual orders stuck in dispatched — mark as delivered here</p>
+        </div>
+        <button onClick={load} className="text-xs text-gray-400 hover:text-gray-600 transition-colors">Refresh</button>
+      </div>
+
+      {toast && (
+        <div className={`mx-6 mt-4 px-4 py-2.5 rounded-xl text-sm font-semibold ${toast.type === "success" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
+          {toast.msg}
+        </div>
+      )}
+
+      {loading ? (
+        <div className="flex justify-center py-10">
+          <div className="w-6 h-6 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : orders.length === 0 ? (
+        <div className="py-10 text-center text-sm text-gray-400">No orders in transit</div>
+      ) : (
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50 border-b border-gray-100">
+            <tr className="text-left">
+              <th className="px-4 py-3 text-xs font-semibold text-gray-500">Order Ref</th>
+              <th className="px-4 py-3 text-xs font-semibold text-gray-500">Customer</th>
+              <th className="px-4 py-3 text-xs font-semibold text-gray-500">Product</th>
+              <th className="px-4 py-3 text-xs font-semibold text-gray-500 text-right">Amount</th>
+              <th className="px-4 py-3 text-xs font-semibold text-gray-500">Waybill</th>
+              <th className="px-4 py-3"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {orders.map((o) => (
+              <tr key={o.orderRef} className="border-b border-gray-50 hover:bg-gray-50">
+                <td className="px-4 py-3 font-mono text-xs text-gray-600">{o.orderRef}</td>
+                <td className="px-4 py-3">
+                  <div className="font-medium text-gray-900">{o.customerName}</div>
+                  <div className="text-xs text-gray-400">{o.customerPhone}</div>
+                </td>
+                <td className="px-4 py-3 text-xs text-gray-600">{o.productName} · {o.variantLabel} ×{o.quantity}</td>
+                <td className="px-4 py-3 text-right font-bold text-gray-900">₹{o.amount}</td>
+                <td className="px-4 py-3 font-mono text-xs text-gray-400">
+                  {o.carrier === "shadowfax" ? o.shadowfaxRequestId : o.delhiveryWaybill || "—"}
+                </td>
+                <td className="px-4 py-3">
+                  <button
+                    onClick={() => markDelivered(o.orderRef)}
+                    disabled={marking === o.orderRef}
+                    className="px-3 py-1.5 text-xs font-bold bg-green-600 hover:bg-green-700 text-white rounded-lg disabled:opacity-50 transition-colors"
+                  >
+                    {marking === o.orderRef ? "…" : "Mark Delivered"}
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+}
+
 const today = new Date().toISOString().split("T")[0];
 
 export default function ManualInvoicePage() {
@@ -429,6 +550,10 @@ export default function ManualInvoicePage() {
             </div>
           )}
         </div>
+      </div>
+
+      <div className="mt-6">
+        <InTransitOrders />
       </div>
     </div>
   );
