@@ -10,40 +10,10 @@ function SuccessContent() {
   const params = useSearchParams();
   const orderId = params.get("order_id");
   const token = params.get("token");
-  const product = params.get("product");
-  const variant = params.get("variant");
   const qty = params.get("qty");
-  const amount = params.get("amount");
 
   const [state, setState] = useState<VerifyState>("checking");
   const [attempts, setAttempts] = useState(0);
-  const [invoiceLoading, setInvoiceLoading] = useState(false);
-  const [invoiceError, setInvoiceError] = useState<string | null>(null);
-
-  const downloadInvoice = async () => {
-    if (!orderId) return;
-    setInvoiceLoading(true);
-    setInvoiceError(null);
-    try {
-      const res = await fetch(`/api/invoice/${orderId}`);
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setInvoiceError(data.error ?? "Invoice not available yet. Try again in a moment.");
-        return;
-      }
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `Invoice-${orderId}.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch {
-      setInvoiceError("Download failed. Please try again.");
-    } finally {
-      setInvoiceLoading(false);
-    }
-  };
 
   useEffect(() => {
     if (!orderId || !token) { setState("failed"); return; }
@@ -121,10 +91,10 @@ function SuccessContent() {
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-16">
       <div className="max-w-md w-full text-center">
         <h1 className="text-4xl sm:text-5xl font-black text-gray-900 mb-4 leading-tight">
-          Order Confirmed
+          Thank you!
         </h1>
         <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-          Thank you for your purchase. We&apos;ll pack it fresh and ship it within 24 hours.
+          Your order is confirmed. You&apos;ll receive your product within 2–5 days.
         </p>
 
         <div className="bg-amber-50 rounded-2xl p-6 mb-8 text-left space-y-3">
@@ -134,50 +104,13 @@ function SuccessContent() {
               <span className="font-bold text-gray-900 font-mono">{orderId}</span>
             </div>
           )}
-          {product && (
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-500 font-medium">Product</span>
-              <span className="font-bold text-gray-900">{product}</span>
-            </div>
-          )}
-          {variant && (
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-500 font-medium">Pack Size</span>
-              <span className="font-bold text-gray-900">{variant}</span>
-            </div>
-          )}
           {qty && (
             <div className="flex justify-between text-sm">
               <span className="text-gray-500 font-medium">Quantity</span>
               <span className="font-bold text-gray-900">{qty}</span>
             </div>
           )}
-          {amount && (
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-500 font-medium">Amount Paid</span>
-              <span className="font-bold text-gray-900">₹{amount}</span>
-            </div>
-          )}
-          {orderId && (
-            <div className="pt-3 border-t border-amber-200 space-y-2">
-              <button
-                onClick={downloadInvoice}
-                disabled={invoiceLoading}
-                className="flex items-center justify-center w-full py-2.5 px-4 bg-stone-900 hover:bg-stone-800 disabled:opacity-60 text-white font-bold text-sm rounded-xl transition-colors cursor-pointer"
-              >
-                {invoiceLoading ? "Downloading…" : "Download Invoice"}
-              </button>
-              {invoiceError && (
-                <p className="text-xs text-red-500 text-center">{invoiceError}</p>
-              )}
-            </div>
-          )}
         </div>
-
-        <p className="text-sm text-gray-500 mb-8">
-          A confirmation will be sent to your phone. Expected delivery:{" "}
-          <span className="font-semibold text-gray-700">3–5 business days</span>
-        </p>
 
         <Link
           href="/"
