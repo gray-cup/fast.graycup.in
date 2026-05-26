@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Product, FREE_DELIVERY_THRESHOLD } from "@/lib/products";
+import { Product, FREE_DELIVERY_THRESHOLD, COUPONS } from "@/lib/products";
 import StateSelect from "@/components/StateSelect";
 
 interface CheckoutModalProps {
@@ -32,6 +32,8 @@ export default function CheckoutModal({
 }: CheckoutModalProps) {
   const [step, setStep] = useState<Step>("form");
   const [errorMsg, setErrorMsg] = useState("");
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const [form, setForm] = useState<FormData>({
     name: "",
     phone: "",
@@ -46,8 +48,16 @@ export default function CheckoutModal({
   const isCoffee = product.category === "Coffee";
   const variant = product.variants[selectedVariantIndex];
   const subtotal = variant.price * quantity;
-  const deliveryCharge = subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : (variant.deliveryCharge ?? 0);
+  const coupon = appliedCoupon ? COUPONS[appliedCoupon] : null;
+  const couponWaivesDelivery = coupon?.freeDeliveryVariants.includes(variant.label) ?? false;
+  const deliveryCharge = (subtotal >= FREE_DELIVERY_THRESHOLD || couponWaivesDelivery) ? 0 : (variant.deliveryCharge ?? 0);
   const total = subtotal + deliveryCharge;
+
+  const applyCoupon = () => {
+    const code = couponInput.trim().toUpperCase();
+    if (COUPONS[code]) setAppliedCoupon(code);
+    else setAppliedCoupon(null);
+  };
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -85,6 +95,7 @@ export default function CheckoutModal({
           quantity,
           amount: total,
           batchId: variant.batchId ?? null,
+          coupon: appliedCoupon ?? undefined,
           customer: {
             ...form,
             address: `${form.address}, ${form.city}, ${form.state}`,
@@ -148,17 +159,44 @@ export default function CheckoutModal({
               <span className="text-gray-600">{product.name} {variant.label} ×{quantity}</span>
               <span className="font-bold text-gray-900">₹{subtotal}</span>
             </div>
-            {deliveryCharge > 0 && (
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Delivery</span>
-                <span className="text-gray-700">₹{deliveryCharge}</span>
-              </div>
-            )}
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-500">Delivery</span>
+              {deliveryCharge > 0
+                ? <span className="text-gray-700">₹{deliveryCharge}</span>
+                : <span className="text-green-600 font-semibold">Free</span>
+              }
+            </div>
             <div className="border-t border-gray-200 mt-1 pt-2 flex justify-between">
               <span className="font-black text-gray-900">Total</span>
               <span className="font-black text-2xl text-gray-900">₹{total}</span>
             </div>
             <p className="text-xs text-gray-400">Product price inclusive of GST</p>
+            {/* Coupon */}
+            <div className="pt-2 border-t border-gray-100 flex gap-2">
+              <input
+                type="text"
+                value={couponInput}
+                onChange={(e) => { setCouponInput(e.target.value); setAppliedCoupon(null); }}
+                placeholder="Coupon code"
+                className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 bg-gray-50 uppercase placeholder-normal"
+              />
+              <button
+                type="button"
+                onClick={applyCoupon}
+                className="px-4 py-2 text-sm font-bold bg-gray-900 text-white rounded-xl hover:bg-gray-700 transition-colors cursor-pointer"
+              >
+                Apply
+              </button>
+            </div>
+            {appliedCoupon && couponWaivesDelivery && (
+              <p className="text-xs text-green-600 font-semibold">"{appliedCoupon}" applied — free delivery!</p>
+            )}
+            {appliedCoupon && !couponWaivesDelivery && (
+              <p className="text-xs text-amber-600">This coupon doesn&apos;t apply to the selected pack.</p>
+            )}
+            {!appliedCoupon && couponInput.trim() && (
+              <p className="text-xs text-red-500">Invalid coupon code.</p>
+            )}
           </div>
 
           {/* Form */}
