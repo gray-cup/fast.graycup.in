@@ -4,7 +4,7 @@ import { ensureOrdersColumns } from "@graycup/db";
 import { db, generateOrderRef } from "@/lib/db";
 import { orders } from "@/lib/db/schema";
 import { getPincodeDetails } from "@/lib/delhivery";
-import { products, FREE_DELIVERY_THRESHOLD, COUPONS } from "@/lib/products";
+import { products, FREE_DELIVERY_THRESHOLD } from "@/lib/products";
 
 export function orderToken(orderRef: string): string {
   const secret = process.env.CASHFREE_SECRET_KEY ?? "fallback";
@@ -32,7 +32,6 @@ interface OrderPayload {
   amount?: number;
   batchId?: string | null;
   items?: OrderLine[];
-  coupon?: string;
   customer: {
     name: string;
     phone: string;
@@ -84,12 +83,6 @@ function computeOrderWeights(body: OrderPayload): {
   return null;
 }
 
-function isCouponDeliveryFree(coupon: string | undefined, variantLabel: string): boolean {
-  if (!coupon) return false;
-  const c = COUPONS[coupon.toUpperCase()];
-  return c?.freeDeliveryVariants.includes(variantLabel) ?? false;
-}
-
 function computeAmount(payload: OrderPayload): number | null {
   if (payload.items && payload.items.length > 0) {
     let subtotal = 0;
@@ -100,8 +93,7 @@ function computeAmount(payload: OrderPayload): number | null {
       const variant = product.variants.find((v) => v.label === item.variantLabel);
       if (!variant) return null;
       subtotal += variant.price * item.quantity;
-      const couponFree = isCouponDeliveryFree(payload.coupon, variant.label);
-      if (!couponFree) deliveryIfCharged += (variant.deliveryCharge ?? 0) * item.quantity;
+      deliveryIfCharged += (variant.deliveryCharge ?? 0) * item.quantity;
     }
     return subtotal + (subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : deliveryIfCharged);
   }
@@ -111,8 +103,7 @@ function computeAmount(payload: OrderPayload): number | null {
     const variant = product.variants.find((v) => v.label === payload.variantLabel);
     if (!variant) return null;
     const subtotal = variant.price * payload.quantity;
-    const couponFree = isCouponDeliveryFree(payload.coupon, variant.label);
-    const delivery = (subtotal >= FREE_DELIVERY_THRESHOLD || couponFree) ? 0 : (variant.deliveryCharge ?? 0);
+    const delivery = subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : (variant.deliveryCharge ?? 0);
     return subtotal + delivery;
   }
   return null;
