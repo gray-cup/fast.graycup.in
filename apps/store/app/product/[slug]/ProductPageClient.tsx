@@ -28,7 +28,9 @@ export default function ProductPageClient({ slug }: { slug: string }) {
 
   const isCoffee = product.category === "Coffee";
   const variant = product.variants[selectedVariant];
-  const total = variant.price * quantity;
+  const allowsQuantity = variant.label === "2kg (4 Packs)";
+  const effectiveQty = allowsQuantity ? quantity : 1;
+  const total = variant.price * effectiveQty;
   const gst = gstAmount(total);
   const related = products.filter((p) => p.id !== product.id && p.category === product.category).slice(0, 3);
 
@@ -49,7 +51,7 @@ export default function ProductPageClient({ slug }: { slug: string }) {
               <p className="text-sm font-bold text-gray-700 mb-3 uppercase tracking-widest">Pack Size</p>
               <div className="flex flex-wrap gap-3">
                 {product.variants.map((v, i) => (
-                  <button key={v.label} onClick={() => setSelectedVariant(i)}
+                  <button key={v.label} onClick={() => { setSelectedVariant(i); setQuantity(1); }}
                     className={`px-5 py-3 rounded-xl font-bold text-sm border-2 transition-all duration-150 ${selectedVariant === i ? isCoffee ? "border-stone-900 bg-stone-50 text-stone-900" : "border-amber-400 bg-amber-50 text-gray-900" : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"}`}>
                     {v.label}
                     <span className={`block text-xs font-semibold mt-0.5 ${isCoffee ? "text-stone-600" : "text-amber-600"}`}>₹{v.price}</span>
@@ -58,14 +60,16 @@ export default function ProductPageClient({ slug }: { slug: string }) {
               </div>
             </div>
 
-            <div className="mb-8">
-              <p className="text-sm font-bold text-gray-700 mb-3 uppercase tracking-widest">Quantity</p>
-              <div className="inline-flex items-center border-2 border-gray-200 rounded-xl overflow-hidden">
-                <button onClick={() => setQuantity((q) => Math.max(1, q - 1))} className="w-12 h-12 flex items-center justify-center text-xl font-bold text-gray-700 hover:bg-gray-100 transition-colors">−</button>
-                <span className="w-14 h-12 flex items-center justify-center text-xl font-black text-gray-900">{quantity}</span>
-                <button onClick={() => setQuantity((q) => Math.min(10, q + 1))} className="w-12 h-12 flex items-center justify-center text-xl font-bold text-gray-700 hover:bg-gray-100 transition-colors">+</button>
+            {allowsQuantity && (
+              <div className="mb-8">
+                <p className="text-sm font-bold text-gray-700 mb-3 uppercase tracking-widest">Quantity</p>
+                <div className="inline-flex items-center border-2 border-gray-200 rounded-xl overflow-hidden">
+                  <button onClick={() => setQuantity((q) => Math.max(1, q - 1))} className="w-12 h-12 flex items-center justify-center text-xl font-bold text-gray-700 hover:bg-gray-100 transition-colors">−</button>
+                  <span className="w-14 h-12 flex items-center justify-center text-xl font-black text-gray-900">{quantity}</span>
+                  <button onClick={() => setQuantity((q) => Math.min(10, q + 1))} className="w-12 h-12 flex items-center justify-center text-xl font-bold text-gray-700 hover:bg-gray-100 transition-colors">+</button>
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="border-t border-gray-100 pt-6">
               {product.outOfStock ? (
@@ -90,7 +94,7 @@ export default function ProductPageClient({ slug }: { slug: string }) {
                   <div className="mb-5">
                     <div className="flex items-baseline gap-2 mb-1">
                       <span className="text-5xl font-black text-gray-900">₹{total}</span>
-                      {quantity > 1 && <span className="text-sm text-gray-500">(₹{variant.price} × {quantity})</span>}
+                      {effectiveQty > 1 && <span className="text-sm text-gray-500">(₹{variant.price} × {effectiveQty})</span>}
                     </div>
                     <p className="text-xs text-gray-400">Incl. 5% GST (CGST 2.5% + SGST 2.5% = ₹{gst})</p>
                   </div>
@@ -131,7 +135,7 @@ export default function ProductPageClient({ slug }: { slug: string }) {
       </div>
 
       {showCheckout && (
-        <CheckoutModal product={product} selectedVariantIndex={selectedVariant} quantity={quantity} onClose={() => setShowCheckout(false)} />
+        <CheckoutModal product={product} selectedVariantIndex={selectedVariant} quantity={effectiveQty} onClose={() => setShowCheckout(false)} />
       )}
     </>
   );
