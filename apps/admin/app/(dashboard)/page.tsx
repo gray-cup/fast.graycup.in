@@ -425,6 +425,97 @@ function PatternTabs({ orders }: { orders: Order[] }) {
   );
 }
 
+// ─── Awaiting Orders Modal ────────────────────────────────────────────────────
+
+function AwaitingModal({ orders, onClose, onUpdate }: { orders: Order[]; onClose: () => void; onUpdate: () => void }) {
+  const awaiting = orders.filter((o) => ["PAID", "PAID_DISPATCH_PENDING"].includes(normalizeStatus(o.status)));
+  const [marking, setMarking] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ type: "success" | "error"; msg: string } | null>(null);
+
+  const markDelivered = async (orderRef: string) => {
+    setMarking(orderRef);
+    try {
+      const res = await fetch(`/api/orders/${orderRef}/mark-delivered`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ awb: "" }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setToast({ type: "success", msg: `${orderRef} marked as delivered` });
+        onUpdate();
+      } else {
+        setToast({ type: "error", msg: data.error || "Failed" });
+      }
+    } catch {
+      setToast({ type: "error", msg: "Request failed" });
+    } finally {
+      setMarking(null);
+      setTimeout(() => setToast(null), 3000);
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
+          <div>
+            <h2 className="text-lg font-black text-gray-900">Awaiting Orders</h2>
+            <p className="text-xs text-gray-400 mt-0.5">{awaiting.length} order{awaiting.length !== 1 ? "s" : ""} paid but not dispatched</p>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold transition-colors">✕</button>
+        </div>
+
+        {toast && (
+          <div className={`mx-6 mt-4 px-4 py-2.5 rounded-xl text-sm font-semibold shrink-0 ${toast.type === "success" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
+            {toast.msg}
+          </div>
+        )}
+
+        <div className="flex-1 overflow-y-auto">
+          {awaiting.length === 0 ? (
+            <p className="text-center py-16 text-sm text-gray-400">No awaiting orders</p>
+          ) : (
+            <table className="w-full text-sm">
+              <thead className="sticky top-0 bg-gray-50 border-b border-gray-100">
+                <tr className="text-left">
+                  <th className="px-4 py-3 text-xs font-semibold text-gray-500">Order Ref</th>
+                  <th className="px-4 py-3 text-xs font-semibold text-gray-500">Customer</th>
+                  <th className="px-4 py-3 text-xs font-semibold text-gray-500">Product</th>
+                  <th className="px-4 py-3 text-xs font-semibold text-gray-500 text-right">Amount</th>
+                  <th className="px-4 py-3"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {awaiting.map((o) => (
+                  <tr key={o.orderRef} className="border-b border-gray-50 hover:bg-gray-50">
+                    <td className="px-4 py-3 font-mono text-xs text-gray-600">{o.orderRef}</td>
+                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{o.orderNumber ? `#${o.orderNumber}` : "—"}</td>
+                    <td className="px-4 py-3 text-xs text-gray-500">{o.variantLabel} ×{o.quantity}</td>
+                    <td className="px-4 py-3 text-right font-bold text-gray-900">₹{o.amount.toLocaleString("en-IN")}</td>
+                    <td className="px-4 py-3">
+                      <button
+                        onClick={() => markDelivered(o.orderRef)}
+                        disabled={marking === o.orderRef}
+                        className="px-3 py-1.5 text-xs font-bold bg-green-600 hover:bg-green-700 text-white rounded-lg disabled:opacity-50 transition-colors"
+                      >
+                        {marking === o.orderRef ? "…" : "Mark Delivered"}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Stat cards ───────────────────────────────────────────────────────────────
 
 const PERIODS: { key: Period; label: string }[] = [
@@ -439,7 +530,7 @@ function isExpired(o: Order) {
   return normalizeStatus(o.status) === "PENDING" && Date.now() - new Date(o.createdAt).getTime() > 15 * 60 * 1000;
 }
 
-function StatCards({ orders, period }: { orders: Order[]; period: Period }) {
+function StatCards({ orders, period, onAwaitingClick }: { orders: Order[]; period: Period; onAwaitingClick: () => void }) {
   const o = filterOrders(orders, period);
 
   const successful = o.filter((x) => SUCCESSFUL.includes(normalizeStatus(x.status)));
@@ -461,7 +552,7 @@ function StatCards({ orders, period }: { orders: Order[]; period: Period }) {
 
   const metricCards = [
     { label: "Revenue", value: `₹${revenue.toLocaleString("en-IN")}`, sub: "from paid orders", color: "bg-emerald-500", track: "bg-emerald-50", num: revenue },
-    { label: "Awaiting", value: paid, sub: "to dispatch", color: "bg-orange-400", track: "bg-orange-50", num: paid },
+    { label: "Awaiting", value: paid, sub: "to dispatch", color: "bg-orange-400", track: "bg-orange-50", num: paid, onClick: onAwaitingClick },
     { label: "Transit", value: dispatched, sub: "with courier", color: "bg-violet-500", track: "bg-violet-50", num: dispatched },
     { label: "Delivered", value: delivered, sub: "completed", color: "bg-green-500", track: "bg-green-50", num: delivered },
     {
@@ -499,8 +590,13 @@ function StatCards({ orders, period }: { orders: Order[]; period: Period }) {
       {/* Metric cards */}
       {metricCards.map((c) => {
         const pct = Math.round((c.num / maxVal) * 100);
+        const clickable = "onClick" in c && c.onClick;
         return (
-          <div key={c.label} className="bg-white rounded-2xl border border-gray-200 p-4 flex flex-col gap-3">
+          <div
+            key={c.label}
+            onClick={clickable ? c.onClick : undefined}
+            className={`bg-white rounded-2xl border border-gray-200 p-4 flex flex-col gap-3 ${clickable ? "cursor-pointer hover:border-orange-300 hover:shadow-sm transition-all" : ""}`}
+          >
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{c.label}</p>
             <p className="text-[26px] font-black leading-none text-gray-900">{c.value}</p>
             <div className={`h-1 rounded-full ${c.track} overflow-hidden`}>
@@ -612,13 +708,16 @@ export default function AdminHome() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<Period>("lifetime");
+  const [showAwaiting, setShowAwaiting] = useState(false);
 
-  useEffect(() => {
+  const loadOrders = () => {
     fetch("/api/dashboard-orders")
       .then((r) => r.json())
       .then((data) => { setOrders(data); setLoading(false); })
       .catch(() => setLoading(false));
-  }, []);
+  };
+
+  useEffect(() => { loadOrders(); }, []);
 
   return (
     <div className="h-full overflow-y-auto pb-10">
@@ -639,13 +738,21 @@ export default function AdminHome() {
         </div>
       </div>
 
+      {showAwaiting && (
+        <AwaitingModal
+          orders={orders}
+          onClose={() => setShowAwaiting(false)}
+          onUpdate={() => { setShowAwaiting(false); loadOrders(); }}
+        />
+      )}
+
       {loading ? (
         <div className="flex justify-center py-32">
           <div className="w-8 h-8 border-[3px] border-amber-400 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          <StatCards orders={orders} period={period} />
+          <StatCards orders={orders} period={period} onAwaitingClick={() => setShowAwaiting(true)} />
           <GitHubHeatmap orders={orders} />
           <PatternTabs orders={orders} />
           <RecentOrders orders={orders} period={period} />
