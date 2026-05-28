@@ -12,6 +12,7 @@ type Order = {
   quantity: number;
   weightCategory?: string;
   totalWeightGrams?: number;
+  customerName?: string;
   createdAt: string;
   source?: "website" | "manual";
 };
@@ -483,7 +484,7 @@ function AwaitingModal({ orders, onClose, onUpdate }: { orders: Order[]; onClose
               <thead className="sticky top-0 bg-gray-50 border-b border-gray-100">
                 <tr className="text-left">
                   <th className="px-4 py-3 text-xs font-semibold text-gray-500">Order Ref</th>
-                  <th className="px-4 py-3 text-xs font-semibold text-gray-500">Customer</th>
+                  <th className="px-4 py-3 text-xs font-semibold text-gray-500">Name</th>
                   <th className="px-4 py-3 text-xs font-semibold text-gray-500">Product</th>
                   <th className="px-4 py-3 text-xs font-semibold text-gray-500 text-right">Amount</th>
                   <th className="px-4 py-3"></th>
@@ -493,7 +494,7 @@ function AwaitingModal({ orders, onClose, onUpdate }: { orders: Order[]; onClose
                 {awaiting.map((o) => (
                   <tr key={o.orderRef} className="border-b border-gray-50 hover:bg-gray-50">
                     <td className="px-4 py-3 font-mono text-xs text-gray-600">{o.orderRef}</td>
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{o.orderNumber ? `#${o.orderNumber}` : "—"}</td>
+                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{o.customerName || "—"}</td>
                     <td className="px-4 py-3 text-xs text-gray-500">{o.variantLabel} ×{o.quantity}</td>
                     <td className="px-4 py-3 text-right font-bold text-gray-900">₹{o.amount.toLocaleString("en-IN")}</td>
                     <td className="px-4 py-3">

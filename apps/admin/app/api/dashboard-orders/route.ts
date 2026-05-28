@@ -31,6 +31,7 @@ export async function GET() {
       weightCategory: string;
       unitWeightGrams: number;
       totalWeightGrams: number;
+      customerName: string;
       createdAt: string;
       source: "website" | "manual";
     };
@@ -46,6 +47,7 @@ export async function GET() {
       weightCategory: o.weightCategory ?? "150gm",
       unitWeightGrams: o.unitWeightGrams ?? 150,
       totalWeightGrams: o.totalWeightGrams ?? 150,
+      customerName: o.customerName ?? "",
       createdAt: o.createdAt instanceof Date ? o.createdAt.toISOString() : String(o.createdAt),
       source: "website",
     }));
@@ -61,6 +63,7 @@ export async function GET() {
       weightCategory: "manual",
       unitWeightGrams: 0,
       totalWeightGrams: 0,
+      customerName: (r.buyer_name as string) ?? "",
       createdAt: r.created_at instanceof Date
         ? (r.created_at as Date).toISOString()
         : String(r.created_at),
