@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Product, FREE_DELIVERY_THRESHOLD } from "@/lib/products";
+import { Product, FREE_DELIVERY_THRESHOLD, isFreeDeliveryPincode } from "@/lib/products";
 import StateSelect from "@/components/StateSelect";
 
 interface CheckoutModalProps {
@@ -46,7 +46,7 @@ export default function CheckoutModal({
   const isCoffee = product.category === "Coffee";
   const variant = product.variants[selectedVariantIndex];
   const subtotal = variant.price * quantity;
-  const deliveryCharge = subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : (variant.deliveryCharge ?? 0);
+  const deliveryCharge = (subtotal >= FREE_DELIVERY_THRESHOLD || isFreeDeliveryPincode(form.pincode)) ? 0 : (variant.deliveryCharge ?? 0);
   const total = subtotal + deliveryCharge;
 
   useEffect(() => {

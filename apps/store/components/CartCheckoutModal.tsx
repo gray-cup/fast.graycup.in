@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useCart } from "@/lib/cart";
-import { FREE_DELIVERY_THRESHOLD } from "@/lib/products";
+import { FREE_DELIVERY_THRESHOLD, isFreeDeliveryPincode } from "@/lib/products";
 import StateSelect from "@/components/StateSelect";
 
 
@@ -26,7 +26,7 @@ export default function CartCheckoutModal({ onClose }: { onClose: () => void }) 
   const overlayRef = useRef<HTMLDivElement>(null);
 
   const subtotal = items.reduce((s, i) => s + i.product.variants[i.variantIndex].price * i.quantity, 0);
-  const totalDelivery = subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : items.reduce((s, i) => s + (i.product.variants[i.variantIndex].deliveryCharge ?? 0) * i.quantity, 0);
+  const totalDelivery = (subtotal >= FREE_DELIVERY_THRESHOLD || isFreeDeliveryPincode(form.pincode)) ? 0 : items.reduce((s, i) => s + (i.product.variants[i.variantIndex].deliveryCharge ?? 0) * i.quantity, 0);
   const total = subtotal + totalDelivery;
 
   useEffect(() => {

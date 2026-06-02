@@ -22,6 +22,11 @@ export interface Product {
 export const GST_RATE = 0.05; // Tea and coffee: 5% GST
 export const FREE_DELIVERY_THRESHOLD = 1000; // free delivery on orders ₹1000+
 
+export function isFreeDeliveryPincode(pincode: string): boolean {
+  const n = parseInt(pincode, 10);
+  return n >= 110001 && n <= 110099; // Delhi
+}
+
 export function gstAmount(price: number): number {
   return Math.round(price * GST_RATE);
 }
