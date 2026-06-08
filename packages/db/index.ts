@@ -86,3 +86,21 @@ export async function generateInvoiceRef(): Promise<string> {
   const randomPart = randomBytes(3).toString("hex").toUpperCase();
   return `GCFINV-${timestamp}${randomPart}`;
 }
+
+let ensureReviewsTablePromise: Promise<void> | null = null;
+export function ensureReviewsTable(): Promise<void> {
+  if (!ensureReviewsTablePromise) {
+    ensureReviewsTablePromise = (async () => {
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS reviews (
+          id          SERIAL PRIMARY KEY,
+          product_id  TEXT NOT NULL,
+          author_name TEXT NOT NULL,
+          body        TEXT NOT NULL,
+          created_at  TIMESTAMP NOT NULL DEFAULT NOW()
+        )
+      `);
+    })();
+  }
+  return ensureReviewsTablePromise;
+}

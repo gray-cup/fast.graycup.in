@@ -2,10 +2,135 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { getProductBySlug, products, gstAmount } from "@/lib/products";
 import CheckoutModal from "@/components/CheckoutModal";
 import ProductCard from "@/components/ProductCard";
+
+interface Review {
+  id: number;
+  productId: string;
+  authorName: string;
+  body: string;
+  createdAt: string;
+}
+
+function ReviewsSection({ productId, isCoffee }: { productId: string; isCoffee: boolean }) {
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [authorName, setAuthorName] = useState("");
+  const [reviewText, setReviewText] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
+
+  const fetchReviews = useCallback(async () => {
+    const res = await fetch(`/api/reviews?productId=${encodeURIComponent(productId)}`);
+    if (res.ok) {
+      const data = await res.json();
+      setReviews(data.reviews ?? []);
+    }
+    setLoading(false);
+  }, [productId]);
+
+  useEffect(() => { fetchReviews(); }, [fetchReviews]);
+
+  async function handleSubmit(e: { preventDefault: () => void }) {
+    e.preventDefault();
+    if (!authorName.trim() || !reviewText.trim()) return;
+    setSubmitting(true);
+    setError("");
+    try {
+      const res = await fetch("/api/reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId, authorName, reviewText }),
+      });
+      if (!res.ok) {
+        const d = await res.json();
+        setError(d.error ?? "Something went wrong");
+      } else {
+        setSubmitted(true);
+        setAuthorName("");
+        setReviewText("");
+        fetchReviews();
+      }
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  const accent = isCoffee ? "stone" : "amber";
+
+  return (
+    <section className="mt-20">
+      <h2 className="text-3xl font-black text-gray-900 mb-8">Customer Reviews</h2>
+
+      {loading ? (
+        <p className="text-gray-400 text-sm">Loading reviews…</p>
+      ) : reviews.length === 0 ? (
+        <p className="text-gray-400 text-sm mb-8">No reviews yet. Be the first!</p>
+      ) : (
+        <div className="flex flex-col gap-5 mb-10">
+          {reviews.map((r) => (
+            <div key={r.id} className="bg-gray-50 rounded-2xl px-6 py-5">
+              <p className="font-bold text-gray-900 text-sm mb-1">{r.authorName}</p>
+              <p className="text-gray-700 leading-relaxed">{r.body}</p>
+              <p className="text-xs text-gray-400 mt-2">
+                {new Date(r.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" })}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="border-t border-gray-100 pt-8">
+        <h3 className="text-xl font-black text-gray-900 mb-5">Write a Review</h3>
+        {submitted ? (
+          <div className={`bg-${accent}-50 border border-${accent}-200 rounded-2xl px-6 py-4`}>
+            <p className="font-bold text-gray-900">Thank you for your review!</p>
+            <button onClick={() => setSubmitted(false)} className="text-sm text-gray-500 underline mt-1">Write another</button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-w-lg">
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1.5 uppercase tracking-widest">Full Name</label>
+              <input
+                type="text"
+                value={authorName}
+                onChange={(e) => setAuthorName(e.target.value)}
+                placeholder="Your name"
+                required
+                className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-gray-900 text-sm focus:outline-none focus:border-gray-400 transition-colors"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1.5 uppercase tracking-widest">Review</label>
+              <textarea
+                value={reviewText}
+                onChange={(e) => setReviewText(e.target.value)}
+                placeholder="Share your experience…"
+                required
+                rows={4}
+                className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-gray-900 text-sm focus:outline-none focus:border-gray-400 transition-colors resize-none"
+              />
+            </div>
+            {error && <p className="text-red-500 text-sm">{error}</p>}
+            <button
+              type="submit"
+              disabled={submitting}
+              className={`self-start font-black text-sm px-6 py-3 rounded-xl transition-all disabled:opacity-50 ${isCoffee ? "bg-stone-900 hover:bg-stone-800 text-white" : "bg-amber-500 hover:bg-amber-600 text-white"}`}
+            >
+              {submitting ? "Submitting…" : "Submit Review"}
+            </button>
+          </form>
+        )}
+      </div>
+    </section>
+  );
+}
 
 export default function ProductPageClient({ slug }: { slug: string }) {
   const product = getProductBySlug(slug);
@@ -116,6 +241,8 @@ export default function ProductPageClient({ slug }: { slug: string }) {
             </div>
           </section>
         )}
+
+        <ReviewsSection productId={product.id} isCoffee={isCoffee} />
       </div>
 
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 shadow-2xl lg:hidden z-40">
