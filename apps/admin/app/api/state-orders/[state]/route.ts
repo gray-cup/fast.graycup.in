@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { db, sql, ensureManualInvoicesTable } from "@graycup/db";
 import ranges from "../../../../lib/pincode-ranges.json";
 
@@ -18,10 +18,11 @@ function pincodeToState(pincode: string): string | null {
   return null;
 }
 
-export async function GET(req: Request, { params }: { params: { state: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ state: string }> }) {
   try {
+    const { state } = await params;
     await ensureManualInvoicesTable();
-    const { searchParams } = new URL(req.url);
+    const { searchParams } = new URL(request.url);
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
 
@@ -55,7 +56,7 @@ export async function GET(req: Request, { params }: { params: { state: string } 
     const orders = ordersResult;
     const manuals = manualsResult;
 
-    const targetState = params.state;
+    const targetState = state;
 
     // Filter orders by state
     const stateOrders = [];
