@@ -34,16 +34,16 @@ export async function GET(req: Request) {
   if (endDate) manualWhere.push(sql`invoice_date::date <= ${endDate}::date`);
 
   const ordersResult = await db.execute(sql`
-    SELECT customer_pincode, amount
+    SELECT customer_pincode, amount, total_weight_grams
     FROM orders
     WHERE status IN ('PAID', 'PAID_DISPATCH_PENDING', 'DISPATCHED', 'DELIVERED')
     ${orderWhere.length ? sql`AND ${sql.join(orderWhere, sql` AND `)}` : sql``}
   `);
 
-  let manualsResult: { rows: { buyer_pincode: string; amount: number }[] } = { rows: [] };
+  let manualsResult: { rows: { buyer_pincode: string; amount: number; total_weight_grams: number }[] } = { rows: [] };
   try {
     manualsResult = await db.execute(sql`
-      SELECT buyer_pincode, amount
+      SELECT buyer_pincode, amount, 0 as total_weight_grams
       FROM manual_invoices
       ${manualWhere.length ? sql`WHERE ${sql.join(manualWhere, sql` AND `)}` : sql``}
     `);
@@ -54,28 +54,30 @@ export async function GET(req: Request) {
   const orders = ordersResult;
   const manuals = manualsResult;
 
-  const stateMap = new Map<string, { orders: number; revenue: number }>();
+  const stateMap = new Map<string, { orders: number; revenue: number; weightGrams: number }>();
 
-  for (const row of orders.rows as { customer_pincode: string; amount: number }[]) {
+  for (const row of orders.rows as { customer_pincode: string; amount: number; total_weight_grams: number }[]) {
     const state = pincodeToState(row.customer_pincode);
     if (!state) continue;
     let e = stateMap.get(state);
-    if (!e) { e = { orders: 0, revenue: 0 }; stateMap.set(state, e); }
+    if (!e) { e = { orders: 0, revenue: 0, weightGrams: 0 }; stateMap.set(state, e); }
     e.orders += 1;
     e.revenue += row.amount ?? 0;
+    e.weightGrams += row.total_weight_grams ?? 0;
   }
 
-  for (const row of manuals.rows as { buyer_pincode: string; amount: number }[]) {
+  for (const row of manuals.rows as { buyer_pincode: string; amount: number; total_weight_grams: number }[]) {
     const state = pincodeToState(row.buyer_pincode);
     if (!state) continue;
     let e = stateMap.get(state);
-    if (!e) { e = { orders: 0, revenue: 0 }; stateMap.set(state, e); }
+    if (!e) { e = { orders: 0, revenue: 0, weightGrams: 0 }; stateMap.set(state, e); }
     e.orders += 1;
     e.revenue += row.amount ?? 0;
+    e.weightGrams += row.total_weight_grams ?? 0;
   }
 
   const result = Array.from(stateMap.entries())
-    .map(([state, e]) => ({ state, orders: e.orders, revenue: e.revenue }))
+    .map(([state, e]) => ({ state, orders: e.orders, revenue: e.revenue, weightGrams: e.weightGrams }))
     .sort((a, b) => b.orders - a.orders);
 
   return NextResponse.json(result);
