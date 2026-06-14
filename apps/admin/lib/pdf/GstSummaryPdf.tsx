@@ -57,8 +57,6 @@ export function GstSummaryPdf({ rows, date }: { rows: GstRow[]; date: string }) 
   const totalAmt = rows.reduce((s, r) => s + r.amount, 0);
   const totalGst = rows.reduce((s, r) => s + r.gstAmount, 0);
   const totalBase = totalAmt;
-  const totalCgst = totalAmt * 0.025;
-  const totalSgst = totalAmt * 0.025;
 
   return (
     <Document>
@@ -73,12 +71,8 @@ export function GstSummaryPdf({ rows, date }: { rows: GstRow[]; date: string }) 
             <Text style={s.statVal}>Rs. {totalBase}</Text>
           </View>
           <View style={s.stat}>
-            <Text style={s.statLabel}>CGST @ 2.5%</Text>
-            <Text style={s.statVal}>Rs. {totalCgst}</Text>
-          </View>
-          <View style={s.stat}>
-            <Text style={s.statLabel}>SGST @ 2.5%</Text>
-            <Text style={s.statVal}>Rs. {totalSgst}</Text>
+            <Text style={s.statLabel}>GST @ 5%</Text>
+            <Text style={s.statVal}>Rs. {totalGst}</Text>
           </View>
           <View style={s.stat}>
             <Text style={s.statLabel}>GRAND TOTAL</Text>

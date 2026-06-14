@@ -139,14 +139,13 @@ export async function generateGstSummaryPdf(invoices: InvoiceData[]): Promise<Bu
 
     doc.fontSize(10).fillColor(gray).text("Summary", 40, 90);
     doc.fontSize(9).font("Helvetica-Bold").fillColor(black).text("Particulars", 40, 108);
-    doc.fontSize(9).fillColor(black).text("Taxable Value (Base)", 40, 122).text("CGST @ 2.5%", 40, 134).text("SGST @ 2.5%", 40, 146);
-    doc.font("Helvetica-Bold").text("Total", 40, 160);
-    doc.font("Helvetica").fillColor(gray).text("Amount", 420, 108).text("Amount", 420, 122).text("Amount", 420, 134).text("Amount", 420, 146).text("Amount", 420, 160);
+    doc.fontSize(9).fillColor(black).text("Taxable Value (Base)", 40, 122).text("GST @ 5%", 40, 134);
+    doc.font("Helvetica-Bold").text("Total", 40, 148);
+    doc.font("Helvetica").fillColor(gray).text("Amount", 420, 108).text("Amount", 420, 122).text("Amount", 420, 134).text("Amount", 420, 148);
     doc.font("Helvetica-Bold").fillColor(black)
       .text(`₹${totalBase}`, 480, 108, { align: "right", width: 60 })
-      .text(`₹${(totalGst / 2).toFixed(0)}`, 480, 122, { align: "right", width: 60 })
-      .text(`₹${(totalGst / 2).toFixed(0)}`, 480, 134, { align: "right", width: 60 })
-      .text(`₹${totalAmount}`, 480, 160, { align: "right", width: 60 });
+      .text(`₹${totalGst}`, 480, 122, { align: "right", width: 60 })
+      .text(`₹${totalAmount}`, 480, 148, { align: "right", width: 60 });
 
     doc.moveTo(40, 178).lineTo(540, 178).strokeColor(lightGray).lineWidth(0.5).stroke();
 

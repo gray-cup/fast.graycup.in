@@ -65,8 +65,7 @@ export interface InvoiceData {
 
 export function InvoicePdf({ data }: { data: InvoiceData }) {
   const subtotal = data.amount;
-  const cgst = data.amount * 0.025;
-  const sgst = data.amount * 0.025;
+  const gst = data.gstAmount;
 
   return (
     <Document>
@@ -118,12 +117,8 @@ export function InvoicePdf({ data }: { data: InvoiceData }) {
               <Text style={s.totVal}>Rs. {subtotal}</Text>
             </View>
             <View style={s.totRow}>
-              <Text style={s.totLabel}>CGST @ 2.5%</Text>
-              <Text style={s.totVal}>Rs. {cgst}</Text>
-            </View>
-            <View style={s.totRow}>
-              <Text style={s.totLabel}>SGST @ 2.5%</Text>
-              <Text style={s.totVal}>Rs. {sgst}</Text>
+              <Text style={s.totLabel}>GST @ 5%</Text>
+              <Text style={s.totVal}>Rs. {gst}</Text>
             </View>
             <View style={s.divider} />
             <View style={s.totRow}>

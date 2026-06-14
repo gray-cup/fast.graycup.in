@@ -32,8 +32,7 @@ const s = StyleSheet.create({
 
 function InvoicePage({ data }: { data: InvoiceData }) {
   const subtotal = data.amount;
-  const cgst = data.amount * 0.025;
-  const sgst = data.amount * 0.025;
+  const gst = data.gstAmount;
   return (
     <Page size="A4" style={s.page}>
       <View style={s.header}>
@@ -79,8 +78,7 @@ function InvoicePage({ data }: { data: InvoiceData }) {
       <View style={s.totals}>
         <View style={s.totBox}>
           <View style={s.totRow}><Text style={s.totLabel}>Taxable Value (GST Inclusive)</Text><Text style={s.totVal}>Rs. {subtotal}</Text></View>
-          <View style={s.totRow}><Text style={s.totLabel}>CGST @ 2.5%</Text><Text style={s.totVal}>Rs. {cgst}</Text></View>
-          <View style={s.totRow}><Text style={s.totLabel}>SGST @ 2.5%</Text><Text style={s.totVal}>Rs. {sgst}</Text></View>
+          <View style={s.totRow}><Text style={s.totLabel}>GST @ 5%</Text><Text style={s.totVal}>Rs. {gst}</Text></View>
           <View style={s.divider} />
           <View style={s.totRow}><Text style={s.totFinal}>Total</Text><Text style={s.totFinal}>Rs. {data.amount}</Text></View>
         </View>
