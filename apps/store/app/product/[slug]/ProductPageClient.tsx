@@ -221,7 +221,7 @@ export default function ProductPageClient({ slug }: { slug: string }) {
                       <span className="text-5xl font-black text-gray-900">₹{total}</span>
                       {effectiveQty > 1 && <span className="text-sm text-gray-500">(₹{variant.price} × {effectiveQty})</span>}
                     </div>
-                    <p className="text-xs text-gray-400">Incl. 5% GST (CGST 2.5% + SGST 2.5% = ₹{gst})</p>
+                    <p className="text-xs text-gray-400">Incl. 5% GST (₹{gst})</p>
                   </div>
                   <button onClick={() => setShowCheckout(true)}
                     className={`w-full font-black text-xl py-5 rounded-2xl transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 mb-3 ${isCoffee ? "bg-stone-900 hover:bg-stone-800 text-white" : "bg-amber-500 hover:bg-amber-600 text-white"}`}>
