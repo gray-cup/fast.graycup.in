@@ -151,7 +151,7 @@ export async function POST(req: NextRequest) {
     }
 
     const orderRef = await generateOrderRef();
-    const gstAmt = Math.round(amount * GST_RATE);
+    const gstAmt = Math.round((amount * GST_RATE / (1 + GST_RATE)) * 100) / 100;
 
     const apiBase =
       cashfreeEnv === "production"

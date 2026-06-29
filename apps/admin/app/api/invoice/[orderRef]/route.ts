@@ -42,7 +42,7 @@ export async function GET(
         variantLabel: o.variantLabel,
         quantity: o.quantity,
         amount: o.amount,
-        gstAmount: o.gstAmount,
+        gstAmount: Math.round(o.amount * 5 / 105 * 100) / 100,
         batchId: o.batchId,
         cashfreeOrderId: o.cashfreeOrderId,
       },

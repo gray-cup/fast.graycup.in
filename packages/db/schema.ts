@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, timestamp, pgEnum, real } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, real, timestamp, pgEnum } from "drizzle-orm/pg-core";
 
 export const orders = pgTable("orders", {
   id: serial("id").primaryKey(),
@@ -12,7 +12,7 @@ export const orders = pgTable("orders", {
   totalWeightGrams: integer("total_weight_grams").notNull().default(150),
   quantity: integer("quantity").notNull(),
   amount: integer("amount").notNull(),
-  gstAmount: integer("gst_amount").notNull(),
+  gstAmount: real("gst_amount").notNull(),
   customerName: text("customer_name").notNull(),
   customerPhone: text("customer_phone").notNull(),
   customerEmail: text("customer_email"),
@@ -60,7 +60,7 @@ export const manualInvoices = pgTable("manual_invoices", {
   itemVariant: text("item_variant"),
   quantity: integer("quantity").notNull().default(1),
   amount: integer("amount").notNull(),
-  gstAmount: integer("gst_amount").notNull().default(0),
+  gstAmount: real("gst_amount").notNull().default(0),
   upiTransactionId: text("upi_transaction_id").notNull(),
   invoiceDate: text("invoice_date").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),

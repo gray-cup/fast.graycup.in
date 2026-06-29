@@ -19,9 +19,8 @@ export default async function InvoicePage({
   if (!rows.length) notFound();
 
   const o = rows[0];
-  const subtotal = o.amount - o.gstAmount;
-  const cgst = Math.round(o.gstAmount / 2);
-  const sgst = o.gstAmount - cgst;
+  const gst = Math.round((o.amount * 5 / 105) * 100) / 100;
+  const subtotal = Math.round((o.amount - gst) * 100) / 100;
   const date = o.createdAt.toLocaleDateString("en-IN", {
     day: "2-digit",
     month: "long",
@@ -112,15 +111,11 @@ export default async function InvoicePage({
             <div className="w-64 flex flex-col gap-2 text-sm">
               <div className="flex justify-between text-gray-500">
                 <span>Subtotal (excl. GST)</span>
-                <span>₹{subtotal}</span>
+                <span>₹{subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-gray-500">
-                <span>CGST @ 2.5%</span>
-                <span>₹{cgst}</span>
-              </div>
-              <div className="flex justify-between text-gray-500">
-                <span>SGST @ 2.5%</span>
-                <span>₹{sgst}</span>
+                <span>GST @ 5%</span>
+                <span>₹{gst.toFixed(2)}</span>
               </div>
               <div className="border-t border-gray-300 pt-2 flex justify-between font-black text-base text-gray-900">
                 <span>Total</span>

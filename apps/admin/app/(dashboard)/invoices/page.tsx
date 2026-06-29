@@ -192,7 +192,7 @@ export default function InvoicesPage() {
                     <div className="text-xs text-gray-400">{o.variantLabel} ×{o.quantity}</div>
                   </td>
                   <td className="px-4 py-3 text-right font-bold">₹{o.amount}</td>
-                  <td className="px-4 py-3 text-xs text-gray-500">₹{o.gstAmount}</td>
+                  <td className="px-4 py-3 text-xs text-gray-500">₹{(Math.round(o.amount * 5 / 105 * 100) / 100).toFixed(2)}</td>
                   <td className="px-4 py-3">
                     <span className={`text-xs font-semibold px-2 py-1 rounded-full ${STATUS_COLORS[o.status] || "bg-gray-100 text-gray-600"}`}>
                       {o.status}

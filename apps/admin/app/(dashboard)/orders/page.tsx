@@ -188,7 +188,7 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
               ) : null}
               <div className="flex justify-between text-xs text-gray-400 border-t border-gray-200 pt-2 mt-1">
                 <span>GST (incl.)</span>
-                <span>₹{order.gstAmount}</span>
+                <span>₹{(Math.round(order.amount * 5 / 105 * 100) / 100).toFixed(2)}</span>
               </div>
             </div>
           </section>

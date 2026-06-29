@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
         phone: o.customerPhone,
         productName: `${o.productName} ${o.variantLabel}`,
         amount: o.amount,
-        gstAmount: o.gstAmount,
+        gstAmount: Math.round(o.amount * 5 / 105 * 100) / 100,
       }));
 
       const date = new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" });
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
         variantLabel: o.variantLabel,
         quantity: o.quantity,
         amount: o.amount,
-        gstAmount: o.gstAmount,
+        gstAmount: Math.round(o.amount * 5 / 105 * 100) / 100,
         batchId: o.batchId,
         cashfreeOrderId: o.cashfreeOrderId,
       }));
