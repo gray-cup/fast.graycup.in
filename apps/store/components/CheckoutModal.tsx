@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Product, FREE_DELIVERY_THRESHOLD, isFreeDeliveryPincode } from "@/lib/products";
 import StateSelect from "@/components/StateSelect";
+import { loadSavedCheckoutInfo, saveCheckoutInfo } from "@/lib/checkoutInfo";
 
 interface CheckoutModalProps {
   product: Product;
@@ -32,7 +33,7 @@ export default function CheckoutModal({
 }: CheckoutModalProps) {
   const [step, setStep] = useState<Step>("form");
   const [errorMsg, setErrorMsg] = useState("");
-  const [form, setForm] = useState<FormData>({
+  const [form, setForm] = useState<FormData>(() => ({
     name: "",
     phone: "",
     address: "",
@@ -40,7 +41,8 @@ export default function CheckoutModal({
     state: "",
     pincode: "",
     email: "",
-  });
+    ...loadSavedCheckoutInfo(),
+  }));
 
   const overlayRef = useRef<HTMLDivElement>(null);
   const isCoffee = product.category === "Coffee";
@@ -98,6 +100,8 @@ export default function CheckoutModal({
       console.log("[checkout] client SDK mode:", cfMode);
       console.log("[checkout] sessionId prefix:", data.paymentSessionId?.slice(0, 16));
       if (!res.ok) throw new Error(data.error || "Failed to create order");
+
+      saveCheckoutInfo(form);
 
       const { load } = await import("@cashfreepayments/cashfree-js");
       const cashfree = await load({ mode: cfMode });

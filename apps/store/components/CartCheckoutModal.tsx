@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useCart } from "@/lib/cart";
 import { FREE_DELIVERY_THRESHOLD, isFreeDeliveryPincode } from "@/lib/products";
 import StateSelect from "@/components/StateSelect";
+import { loadSavedCheckoutInfo, saveCheckoutInfo } from "@/lib/checkoutInfo";
 
 
 interface FormData {
@@ -22,7 +23,16 @@ export default function CartCheckoutModal({ onClose }: { onClose: () => void }) 
   const { items, clearCart } = useCart();
   const [step, setStep] = useState<Step>("form");
   const [errorMsg, setErrorMsg] = useState("");
-  const [form, setForm] = useState<FormData>({ name: "", phone: "", address: "", city: "", state: "", pincode: "", email: "" });
+  const [form, setForm] = useState<FormData>(() => ({
+    name: "",
+    phone: "",
+    address: "",
+    city: "",
+    state: "",
+    pincode: "",
+    email: "",
+    ...loadSavedCheckoutInfo(),
+  }));
   const overlayRef = useRef<HTMLDivElement>(null);
 
   const subtotal = items.reduce((s, i) => s + i.product.variants[i.variantIndex].price * i.quantity, 0);
@@ -80,6 +90,7 @@ export default function CartCheckoutModal({ onClose }: { onClose: () => void }) 
       console.log("[cart-checkout] sessionId prefix:", data.paymentSessionId?.slice(0, 16));
       if (!res.ok) throw new Error(data.error || "Failed to create order");
 
+      saveCheckoutInfo(form);
       clearCart();
 
       const { load } = await import("@cashfreepayments/cashfree-js");
