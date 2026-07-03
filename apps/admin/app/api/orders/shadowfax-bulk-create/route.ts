@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db, schema, ensureOrdersColumns } from "@graycup/db";
 import { eq, inArray } from "drizzle-orm";
 import { createShadowfaxOrder } from "@/lib/shadowfax";
+import { sendTrackingEmail } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   await ensureOrdersColumns();
@@ -38,6 +39,11 @@ export async function POST(req: NextRequest) {
       await db.update(schema.orders)
         .set({ shadowfaxRequestId: result.requestId, carrier: "shadowfax", status: "PAID_DISPATCH_PENDING" })
         .where(eq(schema.orders.orderRef, order.orderRef));
+      try {
+        await sendTrackingEmail(order, result.requestId, "Shadowfax");
+      } catch (err) {
+        console.error("tracking email error:", err);
+      }
       results.push({ orderRef: order.orderRef, requestId: result.requestId });
     } else {
       results.push({ orderRef: order.orderRef, error: result.error });

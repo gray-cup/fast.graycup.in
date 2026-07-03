@@ -1,5 +1,7 @@
 import { Resend } from "resend";
-import type { Order } from "@graycup/db";
+import type { schema } from "@graycup/db";
+
+type Order = typeof schema.orders.$inferSelect;
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 

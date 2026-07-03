@@ -3,6 +3,7 @@ import { db, schema } from "@graycup/db";
 import { eq } from "drizzle-orm";
 import { createShipment, getPincodeDetails } from "@/lib/delhivery";
 import { delhiveryWeightKg } from "@/lib/orderWeight";
+import { sendTrackingEmail } from "@/lib/email";
 
 export async function POST(
   req: NextRequest,
@@ -33,6 +34,11 @@ export async function POST(
     await db.update(schema.orders)
       .set({ delhiveryWaybill: result.waybill, status: "PAID_DISPATCH_PENDING" })
       .where(eq(schema.orders.orderRef, orderRef));
+    try {
+      await sendTrackingEmail(order, result.waybill, "Delhivery");
+    } catch (err) {
+      console.error("tracking email error:", err);
+    }
     return NextResponse.json({ success: true, waybill: result.waybill, status: "PAID_DISPATCH_PENDING" });
   }
 
