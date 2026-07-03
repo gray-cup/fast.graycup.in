@@ -96,7 +96,7 @@ export const products: Product[] = [
     image_url: "/koraput.webp",
     origin: "Koraput, Odisha, India",
     variants: [
-      { label: "Medium Roast (250gm)", weightGrams: 250, price: 525 },
+      { label: "Medium Roast (250gm)", weightGrams: 250, price: 510 },
     ],
   },
   {
@@ -110,7 +110,7 @@ export const products: Product[] = [
     image_url: "/koraput.webp",
     origin: "Koraput, Odisha, India",
     variants: [
-      { label: "Medium Roast (250gm)", weightGrams: 250, price: 525 },
+      { label: "Medium Roast (250gm)", weightGrams: 250, price: 610 },
     ],
   },
   {
@@ -124,7 +124,7 @@ export const products: Product[] = [
     image_url: "/koraput.webp",
     origin: "Koraput, Odisha, India",
     variants: [
-      { label: "Medium Roast (250gm)", weightGrams: 250, price: 525 },
+      { label: "Medium Roast (250gm)", weightGrams: 250, price: 580 },
     ],
   },
 ];
