@@ -7,6 +7,7 @@ import { eq } from "drizzle-orm";
 import { s3, BUCKET } from "@/lib/s3";
 import { generateInvoicePdf } from "@/lib/invoice";
 import { generateInvoiceRef } from "@graycup/db";
+import { sendOrderConfirmationEmail } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   try {
@@ -83,6 +84,12 @@ export async function POST(req: NextRequest) {
       orderRef,
       filename: `Invoice-${orderRef}.pdf`,
     });
+
+    try {
+      await sendOrderConfirmationEmail(order);
+    } catch (err) {
+      console.error("order confirmation email error:", err);
+    }
 
     return NextResponse.json({ ok: true });
   } catch (err) {
