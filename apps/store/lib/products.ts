@@ -85,4 +85,46 @@ export const products: Product[] = [
       { label: "100gm", weightGrams: 100, price: 330, deliveryCharge: 30, batchId: "GRAYBD1" },
     ],
   },
+  {
+    id: "koraput-odisha-washed-coffee",
+    slug: "koraput-odisha-washed-coffee",
+    name: "Koraput, Odisha Washed Coffee",
+    tagline: "Single-origin, washed process",
+    description:
+      "Single-origin washed-process coffee beans from Koraput, Odisha. Clean, bright cup with well-defined acidity.",
+    category: "Coffee",
+    image_url: "/koraput.webp",
+    origin: "Koraput, Odisha, India",
+    variants: [
+      { label: "Medium Roast (250gm)", weightGrams: 250, price: 525 },
+    ],
+  },
+  {
+    id: "koraput-odisha-natural-coffee",
+    slug: "koraput-odisha-natural-coffee",
+    name: "Koraput, Odisha Natural Coffee",
+    tagline: "Single-origin, natural process",
+    description:
+      "Single-origin natural-process (sun-dried cherry) coffee beans from Koraput, Odisha. Full-bodied with fruity, wine-like notes.",
+    category: "Coffee",
+    image_url: "/koraput.webp",
+    origin: "Koraput, Odisha, India",
+    variants: [
+      { label: "Medium Roast (250gm)", weightGrams: 250, price: 525 },
+    ],
+  },
+  {
+    id: "koraput-odisha-hsd-coffee",
+    slug: "koraput-odisha-hsd-coffee",
+    name: "Koraput, Odisha HSD Coffee",
+    tagline: "Single-origin, HSD process",
+    description:
+      "Single-origin HSD-process coffee beans from Koraput, Odisha. Balanced sweetness with a smooth, rounded body.",
+    category: "Coffee",
+    image_url: "/koraput.webp",
+    origin: "Koraput, Odisha, India",
+    variants: [
+      { label: "Medium Roast (250gm)", weightGrams: 250, price: 525 },
+    ],
+  },
 ];
