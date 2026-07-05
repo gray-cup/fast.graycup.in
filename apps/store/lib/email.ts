@@ -263,3 +263,27 @@ export async function sendSubscriptionPaymentFailedEmail(sub: Subscription): Pro
     { idempotencyKey: `subscription-payment-failed/${sub.subscriptionRef}/${Date.now()}` }
   );
 }
+
+export async function sendMagicLinkEmail(email: string, magicLink: string): Promise<void> {
+  if (!resend) return;
+
+  const body = `
+    <h1 style="margin:0 0 8px;font-size:22px;font-weight:900;color:#111827;">Sign in to Gray Cup</h1>
+    <p style="margin:0 0 24px;font-size:15px;color:#6b7280;line-height:1.6;">
+      Click the button below to sign in and manage your subscriptions. This link expires in 15 minutes.
+    </p>
+    <a href="${magicLink}" style="display:inline-block;background:#1c1917;color:#ffffff;font-weight:900;font-size:16px;padding:16px 32px;border-radius:16px;text-decoration:none;">
+      Sign In
+    </a>
+    <p style="margin:24px 0 0;font-size:13px;color:#9ca3af;line-height:1.6;">
+      If you didn't request this, you can safely ignore this email.
+    </p>
+  `;
+
+  await resend.emails.send({
+    from: FROM_EMAIL,
+    to: [email],
+    subject: "Sign in to Gray Cup",
+    html: emailShell(body),
+  });
+}

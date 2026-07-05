@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHmac } from "crypto";
+import { ensureSubscriptionPaymentsTable } from "@graycup/db";
 import { db } from "@/lib/db";
-import { subscriptions } from "@/lib/db/schema";
+import { subscriptions, subscriptionPayments } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import {
   sendSubscriptionConfirmationEmail,
@@ -67,6 +68,14 @@ export async function POST(req: NextRequest) {
           .set({ status: "ACTIVE", nextChargeDate })
           .where(eq(subscriptions.subscriptionRef, subscriptionRef));
 
+        await ensureSubscriptionPaymentsTable();
+        await db.insert(subscriptionPayments).values({
+          subscriptionRef,
+          cfPaymentId,
+          amount: Math.round(paymentAmount),
+          status: "SUCCESS",
+        });
+
         try {
           await sendSubscriptionChargeEmail({ ...sub, status: "ACTIVE", nextChargeDate }, paymentAmount, cfPaymentId);
         } catch (err) {
@@ -76,6 +85,14 @@ export async function POST(req: NextRequest) {
       }
 
       case "SUBSCRIPTION_PAYMENT_FAILED": {
+        await ensureSubscriptionPaymentsTable();
+        await db.insert(subscriptionPayments).values({
+          subscriptionRef,
+          cfPaymentId: data?.payment?.cf_payment_id ? String(data.payment.cf_payment_id) : null,
+          amount: Math.round(Number(data?.payment?.payment_amount ?? sub.amount)),
+          status: "FAILED",
+        });
+
         try {
           await sendSubscriptionPaymentFailedEmail(sub);
         } catch (err) {

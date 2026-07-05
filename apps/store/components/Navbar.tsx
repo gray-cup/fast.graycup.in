@@ -34,6 +34,16 @@ export default function Navbar() {
                 Track Order
               </Link>
 
+              <Link
+                href="/account"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                My Account
+              </Link>
+
               {/* Cart icon */}
               <button
                 onClick={() => setCartOpen(true)}
@@ -64,6 +74,7 @@ export default function Navbar() {
         {menuOpen && (
           <div className="md:hidden border-t border-gray-100 bg-white px-4 pb-5 pt-3 flex flex-col gap-4">
             <Link href="/track" onClick={() => setMenuOpen(false)} className="text-lg font-bold text-gray-800">Track Order</Link>
+            <Link href="/account" onClick={() => setMenuOpen(false)} className="text-lg font-bold text-gray-800">My Account</Link>
             <Link href="/#tea" onClick={() => setMenuOpen(false)} className="text-lg font-bold text-gray-800">CTC Tea</Link>
             <Link href="/#coffee" onClick={() => setMenuOpen(false)} className="text-lg font-bold text-gray-800">Coffee Beans</Link>
             <div className="flex gap-3 pt-1">

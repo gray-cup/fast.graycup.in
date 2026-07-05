@@ -140,3 +140,22 @@ export function ensureSubscriptionsTable(): Promise<void> {
   }
   return ensureSubscriptionsTablePromise;
 }
+
+let ensureSubscriptionPaymentsTablePromise: Promise<void> | null = null;
+export function ensureSubscriptionPaymentsTable(): Promise<void> {
+  if (!ensureSubscriptionPaymentsTablePromise) {
+    ensureSubscriptionPaymentsTablePromise = (async () => {
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS subscription_payments (
+          id               SERIAL PRIMARY KEY,
+          subscription_ref TEXT NOT NULL,
+          cf_payment_id    TEXT,
+          amount           INTEGER NOT NULL,
+          status           TEXT NOT NULL,
+          created_at       TIMESTAMP NOT NULL DEFAULT NOW()
+        )
+      `);
+    })();
+  }
+  return ensureSubscriptionPaymentsTablePromise;
+}
