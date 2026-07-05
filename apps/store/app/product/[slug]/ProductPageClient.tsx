@@ -6,6 +6,7 @@ import { useState, useEffect, useCallback } from "react";
 import { getProductBySlug, products, gstAmount } from "@/lib/products";
 import CheckoutModal from "@/components/CheckoutModal";
 import ProductCard from "@/components/ProductCard";
+import { useCart } from "@/lib/cart";
 
 interface Review {
   id: number;
@@ -134,11 +135,13 @@ function ReviewsSection({ productId, isCoffee }: { productId: string; isCoffee: 
 
 export default function ProductPageClient({ slug }: { slug: string }) {
   const product = getProductBySlug(slug);
+  const { addToCart } = useCart();
 
   const [selectedVariant, setSelectedVariant] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [showCheckout, setShowCheckout] = useState(false);
   const [selectedGrind, setSelectedGrind] = useState(product?.grindOptions?.[0] ?? "");
+  const [added, setAdded] = useState(false);
 
   if (!product) {
     return (
@@ -243,6 +246,16 @@ export default function ProductPageClient({ slug }: { slug: string }) {
                   <button onClick={() => setShowCheckout(true)}
                     className={`w-full font-black text-xl py-5 rounded-2xl transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 mb-3 ${isCoffee ? "bg-stone-900 hover:bg-stone-800 text-white" : "bg-amber-500 hover:bg-amber-600 text-white"}`}>
                     Buy Now
+                  </button>
+                  <button
+                    onClick={() => {
+                      addToCart(product, selectedVariant, effectiveQty);
+                      setAdded(true);
+                      setTimeout(() => setAdded(false), 1500);
+                    }}
+                    className="w-full font-black text-lg py-4 rounded-2xl border-2 border-gray-200 text-gray-900 hover:border-gray-300 transition-all duration-200"
+                  >
+                    {added ? "Added ✓" : "Add to Cart"}
                   </button>
                 </>
               )}
