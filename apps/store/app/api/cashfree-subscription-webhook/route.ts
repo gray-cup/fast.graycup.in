@@ -1,0 +1,106 @@
+import { NextRequest, NextResponse } from "next/server";
+import { createHmac } from "crypto";
+import { db } from "@/lib/db";
+import { subscriptions } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
+import {
+  sendSubscriptionConfirmationEmail,
+  sendSubscriptionChargeEmail,
+  sendSubscriptionPaymentFailedEmail,
+} from "@/lib/email";
+
+export async function POST(req: NextRequest) {
+  try {
+    const rawBody = await req.text();
+    const signature = req.headers.get("x-webhook-signature");
+    const timestamp = req.headers.get("x-webhook-timestamp");
+    const secretKey = process.env.CASHFREE_SECRET_KEY;
+
+    if (signature && timestamp && secretKey) {
+      const expectedSig = createHmac("sha256", secretKey)
+        .update(timestamp + rawBody)
+        .digest("base64");
+      if (expectedSig !== signature) {
+        return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+      }
+    }
+
+    const event = JSON.parse(rawBody);
+    const { type, data } = event;
+
+    const subscriptionRef: string | undefined = data?.subscription?.subscription_id;
+    if (!subscriptionRef) {
+      console.error("subscription-webhook: missing subscription_id", JSON.stringify(event));
+      return NextResponse.json({ ok: true });
+    }
+
+    const rows = await db.select().from(subscriptions).where(eq(subscriptions.subscriptionRef, subscriptionRef)).limit(1);
+    if (!rows.length) {
+      console.error("subscription-webhook: subscription not found", subscriptionRef);
+      return NextResponse.json({ ok: true });
+    }
+    const sub = rows[0];
+    const nextChargeDate: string | null = data?.subscription?.next_schedule_date ?? sub.nextChargeDate;
+
+    switch (type) {
+      case "SUBSCRIPTION_AUTH_STATUS": {
+        const authStatus = data?.authorization?.authorization_status;
+        const newStatus = authStatus === "SUCCESS" ? "ACTIVE" : "AUTH_FAILED";
+        await db.update(subscriptions)
+          .set({ status: newStatus, nextChargeDate })
+          .where(eq(subscriptions.subscriptionRef, subscriptionRef));
+
+        if (authStatus === "SUCCESS") {
+          try {
+            await sendSubscriptionConfirmationEmail({ ...sub, status: newStatus, nextChargeDate });
+          } catch (err) {
+            console.error("subscription confirmation email error:", err);
+          }
+        }
+        break;
+      }
+
+      case "SUBSCRIPTION_PAYMENT_SUCCESS": {
+        const paymentAmount = Number(data?.payment?.payment_amount ?? sub.amount);
+        const cfPaymentId = data?.payment?.cf_payment_id ? String(data.payment.cf_payment_id) : null;
+        await db.update(subscriptions)
+          .set({ status: "ACTIVE", nextChargeDate })
+          .where(eq(subscriptions.subscriptionRef, subscriptionRef));
+
+        try {
+          await sendSubscriptionChargeEmail({ ...sub, status: "ACTIVE", nextChargeDate }, paymentAmount, cfPaymentId);
+        } catch (err) {
+          console.error("subscription charge email error:", err);
+        }
+        break;
+      }
+
+      case "SUBSCRIPTION_PAYMENT_FAILED": {
+        try {
+          await sendSubscriptionPaymentFailedEmail(sub);
+        } catch (err) {
+          console.error("subscription payment-failed email error:", err);
+        }
+        break;
+      }
+
+      case "SUBSCRIPTION_STATUS_CHANGED": {
+        const newStatus = data?.subscription?.subscription_status;
+        if (newStatus) {
+          await db.update(subscriptions)
+            .set({ status: newStatus, nextChargeDate })
+            .where(eq(subscriptions.subscriptionRef, subscriptionRef));
+        }
+        break;
+      }
+
+      default:
+        break;
+    }
+
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error("subscription-webhook error:", err);
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+  }
+}

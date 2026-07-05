@@ -56,3 +56,26 @@ export const reviews = pgTable("reviews", {
 
 export type Review = typeof reviews.$inferSelect;
 export type NewReview = typeof reviews.$inferInsert;
+
+export const subscriptions = pgTable("subscriptions", {
+  id: serial("id").primaryKey(),
+  subscriptionRef: text("subscription_ref").unique().notNull(),
+  cfSubscriptionId: text("cf_subscription_id"),
+  productId: text("product_id").notNull(),
+  productName: text("product_name").notNull(),
+  variantLabel: text("variant_label").notNull(),
+  quantity: integer("quantity").notNull().default(1),
+  amount: integer("amount").notNull(),
+  gstAmount: real("gst_amount").notNull(),
+  customerName: text("customer_name").notNull(),
+  customerPhone: text("customer_phone").notNull(),
+  customerEmail: text("customer_email"),
+  customerAddress: text("customer_address").notNull(),
+  customerPincode: text("customer_pincode").notNull(),
+  status: text("status").notNull().default("INITIALIZED"),
+  nextChargeDate: text("next_charge_date"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export type Subscription = typeof subscriptions.$inferSelect;
+export type NewSubscription = typeof subscriptions.$inferInsert;

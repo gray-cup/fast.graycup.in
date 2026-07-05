@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
 import { getProductBySlug, products, gstAmount } from "@/lib/products";
 import CheckoutModal from "@/components/CheckoutModal";
+import SubscribeModal from "@/components/SubscribeModal";
 import ProductCard from "@/components/ProductCard";
 import { useCart } from "@/lib/cart";
 
@@ -140,6 +141,7 @@ export default function ProductPageClient({ slug }: { slug: string }) {
   const [selectedVariant, setSelectedVariant] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [showCheckout, setShowCheckout] = useState(false);
+  const [showSubscribe, setShowSubscribe] = useState(false);
   const [selectedGrind, setSelectedGrind] = useState(product?.grindOptions?.[0] ?? "");
   const [added, setAdded] = useState(false);
 
@@ -253,9 +255,15 @@ export default function ProductPageClient({ slug }: { slug: string }) {
                       setAdded(true);
                       setTimeout(() => setAdded(false), 1500);
                     }}
-                    className="w-full font-black text-lg py-4 rounded-2xl border-2 border-gray-200 text-gray-900 hover:border-gray-300 transition-all duration-200"
+                    className="w-full font-black text-lg py-4 rounded-2xl border-2 border-gray-200 text-gray-900 hover:border-gray-300 transition-all duration-200 mb-3"
                   >
                     {added ? "Added ✓" : "Add to Cart"}
+                  </button>
+                  <button
+                    onClick={() => setShowSubscribe(true)}
+                    className="w-full font-black text-lg py-4 rounded-2xl border-2 border-dashed border-amber-400 text-amber-700 hover:bg-amber-50 transition-all duration-200"
+                  >
+                    Subscribe Monthly · ₹{variant.price}/mo
                   </button>
                 </>
               )}
@@ -293,6 +301,10 @@ export default function ProductPageClient({ slug }: { slug: string }) {
 
       {showCheckout && (
         <CheckoutModal product={product} selectedVariantIndex={selectedVariant} quantity={effectiveQty} grindSize={selectedGrind || undefined} onClose={() => setShowCheckout(false)} />
+      )}
+
+      {showSubscribe && (
+        <SubscribeModal product={product} selectedVariantIndex={selectedVariant} quantity={effectiveQty} onClose={() => setShowSubscribe(false)} />
       )}
     </>
   );

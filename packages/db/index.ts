@@ -87,6 +87,12 @@ export async function generateInvoiceRef(): Promise<string> {
   return `GCFINV-${timestamp}${randomPart}`;
 }
 
+export async function generateSubscriptionRef(): Promise<string> {
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const randomPart = randomBytes(3).toString("hex").toUpperCase();
+  return `GCS-${timestamp}${randomPart}`;
+}
+
 let ensureReviewsTablePromise: Promise<void> | null = null;
 export function ensureReviewsTable(): Promise<void> {
   if (!ensureReviewsTablePromise) {
@@ -103,4 +109,34 @@ export function ensureReviewsTable(): Promise<void> {
     })();
   }
   return ensureReviewsTablePromise;
+}
+
+let ensureSubscriptionsTablePromise: Promise<void> | null = null;
+export function ensureSubscriptionsTable(): Promise<void> {
+  if (!ensureSubscriptionsTablePromise) {
+    ensureSubscriptionsTablePromise = (async () => {
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS subscriptions (
+          id                SERIAL PRIMARY KEY,
+          subscription_ref  TEXT UNIQUE NOT NULL,
+          cf_subscription_id TEXT,
+          product_id        TEXT NOT NULL,
+          product_name      TEXT NOT NULL,
+          variant_label     TEXT NOT NULL,
+          quantity          INTEGER NOT NULL DEFAULT 1,
+          amount            INTEGER NOT NULL,
+          gst_amount        REAL NOT NULL,
+          customer_name     TEXT NOT NULL,
+          customer_phone    TEXT NOT NULL,
+          customer_email    TEXT,
+          customer_address  TEXT NOT NULL,
+          customer_pincode  TEXT NOT NULL,
+          status            TEXT NOT NULL DEFAULT 'INITIALIZED',
+          next_charge_date  TEXT,
+          created_at        TIMESTAMP NOT NULL DEFAULT NOW()
+        )
+      `);
+    })();
+  }
+  return ensureSubscriptionsTablePromise;
 }
