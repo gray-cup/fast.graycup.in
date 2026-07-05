@@ -11,6 +11,7 @@ import {
   Tag,
   Map,
   BarChart2,
+  Repeat,
   ExternalLink,
   type LucideIcon,
 } from "lucide-react";
@@ -18,6 +19,7 @@ import {
 const navItems: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/",               label: "Dashboard",     icon: LayoutDashboard },
   { href: "/orders",         label: "Orders",        icon: ShoppingBag     },
+  { href: "/subscriptions",  label: "Subscriptions", icon: Repeat          },
   { href: "/invoices",       label: "Invoices",      icon: FileText        },
   { href: "/manual-invoice", label: "Manual Invoice",icon: PenLine         },
   { href: "/documents",      label: "Documents",     icon: FolderOpen      },
