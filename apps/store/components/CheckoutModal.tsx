@@ -9,6 +9,7 @@ interface CheckoutModalProps {
   product: Product;
   selectedVariantIndex: number;
   quantity: number;
+  grindSize?: string;
   onClose: () => void;
 }
 
@@ -29,6 +30,7 @@ export default function CheckoutModal({
   product,
   selectedVariantIndex,
   quantity,
+  grindSize,
   onClose,
 }: CheckoutModalProps) {
   const [step, setStep] = useState<Step>("form");
@@ -81,7 +83,7 @@ export default function CheckoutModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           productId: product.id,
-          productName: product.name,
+          productName: grindSize ? `${product.name} (Grind: ${grindSize})` : product.name,
           variantLabel: variant.label,
           weightGrams: variant.weightGrams * quantity,
           quantity,
@@ -152,6 +154,12 @@ export default function CheckoutModal({
               <span className="text-gray-600">{product.name} {variant.label} ×{quantity}</span>
               <span className="font-bold text-gray-900">₹{subtotal}</span>
             </div>
+            {grindSize && (
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Grind Size</span>
+                <span className="text-gray-700">{grindSize}</span>
+              </div>
+            )}
             <div className="flex justify-between text-sm">
               <span className="text-gray-500">Delivery</span>
               {deliveryCharge > 0

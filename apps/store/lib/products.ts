@@ -17,7 +17,19 @@ export interface Product {
   variants: ProductVariant[];
   origin: string;
   outOfStock?: boolean;
+  grindOptions?: string[]; // first entry is the default selection
 }
+
+// First entry is the default grind size shown on coffee product pages.
+export const COFFEE_GRIND_OPTIONS: string[] = [
+  "French Press / Cold Brew",
+  "Whole Beans",
+  "Espresso",
+  "Moka Pot",
+  "South Indian Filter",
+  "Pour Over",
+  "Aeropress",
+];
 
 export const GST_RATE = 0.05; // Tea and coffee: 5% GST
 export const FREE_DELIVERY_THRESHOLD = 1000; // free delivery on orders ₹1000+
@@ -98,6 +110,7 @@ export const products: Product[] = [
     variants: [
       { label: "Medium Roast (250gm)", weightGrams: 250, price: 510 },
     ],
+    grindOptions: COFFEE_GRIND_OPTIONS,
   },
   {
     id: "koraput-odisha-natural-coffee",
@@ -110,8 +123,9 @@ export const products: Product[] = [
     image_url: "/koraput.webp",
     origin: "Koraput, Odisha, India",
     variants: [
-      { label: "Medium Roast (250gm)", weightGrams: 250, price: 610 },
+      { label: "Medium Roast (250gm)", weightGrams: 250, price: 750 },
     ],
+    grindOptions: COFFEE_GRIND_OPTIONS,
   },
   {
     id: "koraput-odisha-hsd-coffee",
@@ -124,7 +138,8 @@ export const products: Product[] = [
     image_url: "/koraput.webp",
     origin: "Koraput, Odisha, India",
     variants: [
-      { label: "Medium Roast (250gm)", weightGrams: 250, price: 580 },
+      { label: "Medium Roast (250gm)", weightGrams: 250, price: 650 },
     ],
+    grindOptions: COFFEE_GRIND_OPTIONS,
   },
 ];

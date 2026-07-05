@@ -138,6 +138,7 @@ export default function ProductPageClient({ slug }: { slug: string }) {
   const [selectedVariant, setSelectedVariant] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [showCheckout, setShowCheckout] = useState(false);
+  const [selectedGrind, setSelectedGrind] = useState(product?.grindOptions?.[0] ?? "");
 
   if (!product) {
     return (
@@ -184,6 +185,22 @@ export default function ProductPageClient({ slug }: { slug: string }) {
                 ))}
               </div>
             </div>
+
+            {product.grindOptions && product.grindOptions.length > 0 && (
+              <div className="mb-6">
+                <p className="text-sm font-bold text-gray-700 mb-3 uppercase tracking-widest">Grind Size</p>
+                <select
+                  value={selectedGrind}
+                  onChange={(e) => setSelectedGrind(e.target.value)}
+                  className="w-full sm:w-auto px-4 py-3 rounded-xl font-bold text-sm border-2 border-gray-200 bg-white text-gray-900 focus:outline-none focus:border-stone-900"
+                >
+                  {product.grindOptions.map((g) => (
+                    <option key={g} value={g}>{g}</option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-400 mt-2">Default: French Press / Cold Brew</p>
+              </div>
+            )}
 
             {allowsQuantity && (
               <div className="mb-8">
@@ -262,7 +279,7 @@ export default function ProductPageClient({ slug }: { slug: string }) {
       </div>
 
       {showCheckout && (
-        <CheckoutModal product={product} selectedVariantIndex={selectedVariant} quantity={effectiveQty} onClose={() => setShowCheckout(false)} />
+        <CheckoutModal product={product} selectedVariantIndex={selectedVariant} quantity={effectiveQty} grindSize={selectedGrind || undefined} onClose={() => setShowCheckout(false)} />
       )}
     </>
   );
