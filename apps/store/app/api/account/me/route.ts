@@ -3,11 +3,11 @@ import { eq, inArray, desc } from "drizzle-orm";
 import { ensureSubscriptionsTable, ensureSubscriptionPaymentsTable } from "@graycup/db";
 import { db } from "@/lib/db";
 import { subscriptions, subscriptionPayments } from "@/lib/db/schema";
-import { verifySessionToken, SESSION_COOKIE } from "@/lib/authToken";
+import { auth } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
-  const token = req.cookies.get(SESSION_COOKIE)?.value;
-  const email = token ? verifySessionToken(token) : null;
+  const session = await auth.api.getSession({ headers: req.headers });
+  const email = session?.user.email;
   if (!email) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   }

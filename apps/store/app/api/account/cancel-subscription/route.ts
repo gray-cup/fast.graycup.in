@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { subscriptions } from "@/lib/db/schema";
-import { verifySessionToken, SESSION_COOKIE } from "@/lib/authToken";
+import { auth } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
-  const token = req.cookies.get(SESSION_COOKIE)?.value;
-  const email = token ? verifySessionToken(token) : null;
+  const session = await auth.api.getSession({ headers: req.headers });
+  const email = session?.user.email;
   if (!email) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   }

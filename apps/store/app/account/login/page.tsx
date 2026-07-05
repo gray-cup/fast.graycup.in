@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import { authClient } from "@/lib/auth-client";
 
 function LoginContent() {
   const params = useSearchParams();
@@ -17,10 +18,10 @@ function LoginContent() {
     e.preventDefault();
     setLoading(true);
     try {
-      await fetch("/api/account/request-login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+      await authClient.signIn.magicLink({
+        email,
+        callbackURL: "/account",
+        errorCallbackURL: "/account/login?error=invalid_token",
       });
       setSubmitted(true);
     } finally {

@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { authClient } from "@/lib/auth-client";
 
 interface Subscription {
   subscriptionRef: string;
@@ -81,7 +82,7 @@ export default function AccountPage() {
   };
 
   const handleLogout = async () => {
-    await fetch("/api/account/logout", { method: "POST" });
+    await authClient.signOut();
     router.replace("/");
   };
 
