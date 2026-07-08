@@ -32,7 +32,7 @@ export const COFFEE_GRIND_OPTIONS: string[] = [
 ];
 
 export const GST_RATE = 0.05; // Tea and coffee: 5% GST
-export const FREE_DELIVERY_THRESHOLD = 1000; // free delivery on orders ₹1000+
+export const FREE_DELIVERY_THRESHOLD = 900; // free delivery on orders ₹900+
 
 export function isFreeDeliveryPincode(pincode: string): boolean {
   const n = parseInt(pincode, 10);
