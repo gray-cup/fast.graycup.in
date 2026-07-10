@@ -17,7 +17,10 @@ export const metadata: Metadata = {
   title: "Gray Cup Fast",
   description: "Gray Cup sells tea and coffee. Shipped fast across India.",
   icons: { icon: "/favicon.png" },
-  openGraph: { images: [{ url: "/og.png" }] },
+  openGraph: {
+    siteName: "Gray Cup Fast",
+    images: [{ url: "/og.png" }],
+  },
 };
 
 export default function RootLayout({
@@ -31,6 +34,19 @@ export default function RootLayout({
         style={{ fontFamily: "var(--font-outfit), sans-serif" }}
         className="bg-white text-gray-900 min-h-screen flex flex-col"
       >
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "@id": "https://fast.graycup.in/#website",
+              name: "Gray Cup Fast",
+              alternateName: "Gray Cup",
+              url: "https://fast.graycup.in",
+            }),
+          }}
+        />
         <CartProvider>
           <Navbar />
           <main className="flex-1">{children}</main>
