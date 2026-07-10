@@ -14,6 +14,7 @@
     "@graycup/db": "*",
     "@neondatabase/serverless": "^1.1.0",
     "better-auth": "^1.6.23",
+    "@better-auth/drizzle-adapter": "^1.6.23",
     "@radix-ui/react-select": "^2.2.6",
     "@vercel/analytics": "^2.0.1",
     "lucide-react": "^1.14.0",
