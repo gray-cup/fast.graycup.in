@@ -74,12 +74,18 @@ export async function POST(req: NextRequest) {
       .replace(/[^a-z0-9.\-_]/g, "-")
       .slice(0, 40);
 
+    const planName = `${product.name} Monthly`
+      .replace(/[^a-zA-Z0-9 _-]/g, "")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 40);
+
     const planRes = await fetch(`${apiBase}/plans`, {
       method: "POST",
       headers: cfHeaders,
       body: JSON.stringify({
         plan_id: planId,
-        plan_name: `${product.name} Monthly`.slice(0, 40),
+        plan_name: planName,
         plan_type: "PERIODIC",
         plan_currency: "INR",
         plan_recurring_amount: amount,
