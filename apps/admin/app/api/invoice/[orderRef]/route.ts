@@ -43,6 +43,8 @@ export async function GET(
         quantity: o.quantity,
         amount: o.amount,
         gstAmount: Math.round(o.amount * 5 / 105 * 100) / 100,
+        discountAmount: o.discountAmount,
+        couponCode: o.couponCode,
         batchId: o.batchId,
         cashfreeOrderId: o.cashfreeOrderId,
       },

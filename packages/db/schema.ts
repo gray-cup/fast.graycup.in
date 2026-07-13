@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, real, timestamp, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, real, timestamp, pgEnum, boolean } from "drizzle-orm/pg-core";
 
 export const orders = pgTable("orders", {
   id: serial("id").primaryKey(),
@@ -26,11 +26,29 @@ export const orders = pgTable("orders", {
   carrier: text("carrier").default("delhivery"),
   invoiceKey: text("invoice_key"),
   invoiceNumber: text("invoice_number"),
+  couponCode: text("coupon_code"),
+  discountAmount: integer("discount_amount").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 export type Order = typeof orders.$inferSelect;
 export type NewOrder = typeof orders.$inferInsert;
+
+export const coupons = pgTable("coupons", {
+  id: serial("id").primaryKey(),
+  code: text("code").unique().notNull(),
+  discountPercent: integer("discount_percent").notNull(),
+  maxDiscountAmount: integer("max_discount_amount"),
+  minOrderAmount: integer("min_order_amount"),
+  usageLimit: integer("usage_limit"),
+  usedCount: integer("used_count").notNull().default(0),
+  active: boolean("active").notNull().default(true),
+  expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export type Coupon = typeof coupons.$inferSelect;
+export type NewCoupon = typeof coupons.$inferInsert;
 
 export const documentTypeEnum = pgEnum("document_type", ["INVOICE", "GST_SUMMARY", "LABEL", "PACKING_SLIP"]);
 export const documentSourceEnum = pgEnum("document_source", ["ADMIN", "STORE"]);

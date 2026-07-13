@@ -59,13 +59,17 @@ export interface InvoiceData {
   quantity: number;
   amount: number;
   gstAmount: number;
+  discountAmount?: number;
+  couponCode?: string | null;
   batchId?: string | null;
   cashfreeOrderId?: string | null;
 }
 
 export function InvoicePdf({ data }: { data: InvoiceData }) {
   const gst = Math.round((data.amount * 5 / 105) * 100) / 100;
-  const subtotal = data.amount;
+  const discountAmount = data.discountAmount ?? 0;
+  const originalAmount = data.amount + discountAmount;
+  const subtotal = originalAmount;
 
   return (
     <Document>
@@ -116,8 +120,14 @@ export function InvoicePdf({ data }: { data: InvoiceData }) {
               <Text style={s.totLabel}>Taxable Value (GST Inclusive)</Text>
               <Text style={s.totVal}>Rs. {subtotal}</Text>
             </View>
+            {discountAmount > 0 ? (
+              <View style={s.totRow}>
+                <Text style={s.totLabel}>Discount{data.couponCode ? ` (${data.couponCode})` : ""}</Text>
+                <Text style={s.totVal}>- Rs. {discountAmount}</Text>
+              </View>
+            ) : null}
             <View style={s.totRow}>
-              <Text style={s.totLabel}>GST @ 5%</Text>
+              <Text style={s.totLabel}>GST @ 5% (incl.)</Text>
               <Text style={s.totVal}>Rs. {gst}</Text>
             </View>
             <View style={s.divider} />

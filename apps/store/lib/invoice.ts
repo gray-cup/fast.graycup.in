@@ -16,6 +16,8 @@ interface InvoiceData {
   quantity: number;
   amount: number;
   gstAmount: number;
+  discountAmount?: number;
+  couponCode?: string | null;
   awb?: string | null;
 }
 
@@ -75,21 +77,33 @@ export async function generateInvoicePdf(d: InvoiceData): Promise<Buffer> {
     doc.text("QTY", startX + 340, y, { align: "center" });
     doc.text("AMOUNT", endX, y, { align: "right", width: 80 });
 
+    const discountAmount = d.discountAmount ?? 0;
+    const originalAmount = d.amount + discountAmount;
+
     y += 16;
     doc.fontSize(11).font("Helvetica").fillColor(black).text(d.productName, startX, y);
     doc.text(d.variantLabel, startX + 240, y);
     doc.text(String(d.quantity), startX + 340, y, { align: "center" });
-    doc.text(`₹${d.amount}`, endX, y, { align: "right", width: 80 });
+    doc.text(`₹${originalAmount}`, endX, y, { align: "right", width: 80 });
 
     y += 20;
     doc.moveTo(startX, y).lineTo(endX, y).strokeColor(lightGray).lineWidth(0.5).stroke();
 
     y += 12;
     const totX = endX - 200;
-    doc.fontSize(10).fillColor(gray).text("Subtotal", totX, y, { width: 120 }).text(`₹${d.amount - d.gstAmount}`, endX, y, { align: "right", width: 80 });
-    doc.text("GST 5%", totX, y + 16, { width: 120 }).text(`₹${d.gstAmount}`, endX, y + 16, { align: "right", width: 80 });
-    doc.moveTo(totX, y + 30).lineTo(endX, y + 30).strokeColor(black).lineWidth(1).stroke();
-    doc.fontSize(12).font("Helvetica-Bold").fillColor(black).text("Total", totX, y + 38, { width: 120 }).text(`₹${d.amount}`, endX, y + 38, { align: "right", width: 80 });
+    let rowY = y;
+    doc.fontSize(10).fillColor(gray).text("Subtotal", totX, rowY, { width: 120 }).text(`₹${originalAmount}`, endX, rowY, { align: "right", width: 80 });
+    if (discountAmount > 0) {
+      rowY += 16;
+      const label = d.couponCode ? `Discount (${d.couponCode})` : "Discount";
+      doc.text(label, totX, rowY, { width: 120 }).text(`-₹${discountAmount}`, endX, rowY, { align: "right", width: 80 });
+    }
+    rowY += 16;
+    doc.text("GST 5% (incl.)", totX, rowY, { width: 120 }).text(`₹${d.gstAmount}`, endX, rowY, { align: "right", width: 80 });
+    rowY += 14;
+    doc.moveTo(totX, rowY).lineTo(endX, rowY).strokeColor(black).lineWidth(1).stroke();
+    rowY += 8;
+    doc.fontSize(12).font("Helvetica-Bold").fillColor(black).text("Total", totX, rowY, { width: 120 }).text(`₹${d.amount}`, endX, rowY, { align: "right", width: 80 });
 
     doc.fontSize(9).fillColor(lightGray).text("Thank you for your order. This is a computer-generated invoice.", startX, doc.y + 30, { align: "center" });
 

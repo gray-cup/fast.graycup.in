@@ -8,6 +8,7 @@ import { s3, BUCKET } from "@/lib/s3";
 import { generateInvoicePdf } from "@/lib/invoice";
 import { generateInvoiceRef } from "@graycup/db";
 import { sendOrderConfirmationEmail } from "@/lib/email";
+import { incrementCouponUsage } from "@/lib/coupons";
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,13 +17,18 @@ export async function POST(req: NextRequest) {
     const timestamp = req.headers.get("x-webhook-timestamp");
     const secretKey = process.env.CASHFREE_SECRET_KEY;
 
-    if (signature && timestamp && secretKey) {
-      const expectedSig = createHmac("sha256", secretKey)
-        .update(timestamp + rawBody)
-        .digest("base64");
-      if (expectedSig !== signature) {
-        return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
-      }
+    if (!secretKey) {
+      console.error("cashfree-webhook: CASHFREE_SECRET_KEY not configured");
+      return NextResponse.json({ error: "Server misconfigured" }, { status: 500 });
+    }
+    if (!signature || !timestamp) {
+      return NextResponse.json({ error: "Missing signature" }, { status: 401 });
+    }
+    const expectedSig = createHmac("sha256", secretKey)
+      .update(timestamp + rawBody)
+      .digest("base64");
+    if (expectedSig !== signature) {
+      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
 
     const event = JSON.parse(rawBody);
@@ -51,6 +57,14 @@ export async function POST(req: NextRequest) {
 
     await db.update(orders).set({ status: "PAID", invoiceNumber }).where(eq(orders.orderRef, orderRef));
 
+    if (order.couponCode) {
+      try {
+        await incrementCouponUsage(order.couponCode);
+      } catch (err) {
+        console.error("coupon usage increment error:", err);
+      }
+    }
+
     const invoicePdf = await generateInvoicePdf({
       invoiceNumber,
       orderRef,
@@ -65,6 +79,8 @@ export async function POST(req: NextRequest) {
       quantity: order.quantity,
       amount: order.amount,
       gstAmount: order.gstAmount,
+      discountAmount: order.discountAmount,
+      couponCode: order.couponCode,
     });
 
     const invoiceKey = `invoices/${orderRef}.pdf`;

@@ -46,12 +46,53 @@ export default function CheckoutModal({
     ...loadSavedCheckoutInfo(),
   }));
 
+  const [couponInput, setCouponInput] = useState("");
+  const [coupon, setCoupon] = useState<{ code: string; discountAmount: number } | null>(null);
+  const [couponError, setCouponError] = useState("");
+  const [couponChecking, setCouponChecking] = useState(false);
+
   const overlayRef = useRef<HTMLDivElement>(null);
   const isCoffee = product.category === "Coffee";
   const variant = product.variants[selectedVariantIndex];
   const subtotal = variant.price * quantity;
   const deliveryCharge = (subtotal >= FREE_DELIVERY_THRESHOLD || isFreeDeliveryPincode(form.pincode)) ? 0 : (variant.deliveryCharge ?? 0);
-  const total = subtotal + deliveryCharge;
+  const discountAmount = coupon?.discountAmount ?? 0;
+  const total = subtotal + deliveryCharge - discountAmount;
+
+  const applyCoupon = async () => {
+    if (!couponInput.trim()) return;
+    setCouponChecking(true);
+    setCouponError("");
+    try {
+      const res = await fetch("/api/validate-coupon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: couponInput.trim(),
+          productId: product.id,
+          variantLabel: variant.label,
+          quantity,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.valid) {
+        setCoupon(null);
+        setCouponError(data.error || "Invalid coupon code");
+      } else {
+        setCoupon({ code: data.code, discountAmount: data.discountAmount });
+      }
+    } catch {
+      setCoupon(null);
+      setCouponError("Failed to validate coupon");
+    }
+    setCouponChecking(false);
+  };
+
+  const removeCoupon = () => {
+    setCoupon(null);
+    setCouponInput("");
+    setCouponError("");
+  };
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -89,6 +130,7 @@ export default function CheckoutModal({
           quantity,
           amount: total,
           batchId: variant.batchId ?? null,
+          couponCode: coupon?.code,
           customer: {
             ...form,
             address: `${form.address}, ${form.city}, ${form.state}`,
@@ -167,12 +209,51 @@ export default function CheckoutModal({
                 : <span className="text-green-600 font-semibold">Free</span>
               }
             </div>
+            {coupon && (
+              <div className="flex justify-between text-sm">
+                <span className="text-green-600">Coupon ({coupon.code})</span>
+                <span className="text-green-600 font-semibold">-₹{discountAmount}</span>
+              </div>
+            )}
             <div className="border-t border-gray-200 mt-1 pt-2 flex justify-between">
               <span className="font-black text-gray-900">Total</span>
               <span className="font-black text-2xl text-gray-900">₹{total}</span>
             </div>
             <p className="text-xs text-gray-400">Product price inclusive of GST</p>
           </div>
+
+          {/* Coupon */}
+          {step === "form" && (
+            <div className="mx-6 mb-2">
+              {coupon ? (
+                <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-xl px-3 py-2 text-sm">
+                  <span className="text-green-700 font-semibold">"{coupon.code}" applied</span>
+                  <button type="button" onClick={removeCoupon} className="text-green-700 underline text-xs">Remove</button>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-1">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={couponInput}
+                      onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                      placeholder="Coupon code"
+                      className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 bg-gray-50"
+                    />
+                    <button
+                      type="button"
+                      onClick={applyCoupon}
+                      disabled={couponChecking || !couponInput.trim()}
+                      className="px-4 py-2 text-sm font-bold rounded-xl bg-gray-900 text-white disabled:opacity-40"
+                    >
+                      {couponChecking ? "Checking…" : "Apply"}
+                    </button>
+                  </div>
+                  {couponError && <p className="text-xs text-red-500">{couponError}</p>}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Form */}
           {step === "form" && (

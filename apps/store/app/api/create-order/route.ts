@@ -5,6 +5,7 @@ import { db, generateOrderRef } from "@/lib/db";
 import { orders } from "@/lib/db/schema";
 import { getPincodeDetails } from "@/lib/delhivery";
 import { products, FREE_DELIVERY_THRESHOLD, isFreeDeliveryPincode } from "@/lib/products";
+import { validateCoupon, incrementCouponUsage } from "@/lib/coupons";
 
 export function orderToken(orderRef: string): string {
   const secret = process.env.CASHFREE_SECRET_KEY ?? "fallback";
@@ -32,6 +33,7 @@ interface OrderPayload {
   amount?: number;
   batchId?: string | null;
   items?: OrderLine[];
+  couponCode?: string;
   customer: {
     name: string;
     phone: string;
@@ -83,7 +85,13 @@ function computeOrderWeights(body: OrderPayload): {
   return null;
 }
 
-function computeAmount(payload: OrderPayload): number | null {
+interface AmountBreakdown {
+  subtotal: number;
+  delivery: number;
+  total: number;
+}
+
+function computeAmount(payload: OrderPayload): AmountBreakdown | null {
   const pincodeFree = isFreeDeliveryPincode(payload.customer?.pincode ?? "");
   if (payload.items && payload.items.length > 0) {
     let subtotal = 0;
@@ -96,7 +104,8 @@ function computeAmount(payload: OrderPayload): number | null {
       subtotal += variant.price * item.quantity;
       deliveryIfCharged += (variant.deliveryCharge ?? 0) * item.quantity;
     }
-    return subtotal + (subtotal >= FREE_DELIVERY_THRESHOLD || pincodeFree ? 0 : deliveryIfCharged);
+    const delivery = subtotal >= FREE_DELIVERY_THRESHOLD || pincodeFree ? 0 : deliveryIfCharged;
+    return { subtotal, delivery, total: subtotal + delivery };
   }
   if (payload.productId && payload.variantLabel && payload.quantity) {
     const product = products.find((p) => p.id === payload.productId);
@@ -105,7 +114,7 @@ function computeAmount(payload: OrderPayload): number | null {
     if (!variant) return null;
     const subtotal = variant.price * payload.quantity;
     const delivery = (subtotal >= FREE_DELIVERY_THRESHOLD || pincodeFree) ? 0 : (variant.deliveryCharge ?? 0);
-    return subtotal + delivery;
+    return { subtotal, delivery, total: subtotal + delivery };
   }
   return null;
 }
@@ -122,11 +131,24 @@ export async function POST(req: NextRequest) {
     const quantity = body.quantity ?? items?.reduce((s, i) => s + i.quantity, 0) ?? 1;
     const batchId = body.batchId ?? items?.[0]?.batchId ?? null;
 
-    const amount = computeAmount(body);
+    const breakdown = computeAmount(body);
     const weights = computeOrderWeights(body);
-    if (!amount || !weights) {
+    if (!breakdown || !weights) {
       return NextResponse.json({ error: "Invalid product or variant" }, { status: 400 });
     }
+
+    let discountAmount = 0;
+    let appliedCouponCode: string | null = null;
+    if (body.couponCode) {
+      const couponResult = await validateCoupon(body.couponCode, breakdown.subtotal);
+      if (!couponResult.valid) {
+        return NextResponse.json({ error: couponResult.error || "Invalid coupon code" }, { status: 400 });
+      }
+      discountAmount = couponResult.discountAmount;
+      appliedCouponCode = couponResult.coupon!.code;
+    }
+
+    const amount = breakdown.total - discountAmount;
 
     const allProductIds = body.items ? body.items.map((i) => i.productId) : [productId];
     const outOfStockProduct = products.find((p) => p.outOfStock && allProductIds.includes(p.id));
@@ -219,6 +241,8 @@ export async function POST(req: NextRequest) {
         customerPincode: customer.pincode,
         batchId,
         status: "PENDING",
+        couponCode: appliedCouponCode,
+        discountAmount,
       });
     } catch (err: any) {
       if (err?.code === "23505") {

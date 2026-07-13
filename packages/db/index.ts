@@ -42,9 +42,34 @@ export function ensureOrdersColumns(): Promise<void> {
       );
       await db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS shadowfax_request_id TEXT`);
       await db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS carrier TEXT NOT NULL DEFAULT 'delhivery'`);
+      await db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS coupon_code TEXT`);
+      await db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS discount_amount INTEGER NOT NULL DEFAULT 0`);
     })();
   }
   return ensureOrdersColumnsPromise;
+}
+
+let ensureCouponsTablePromise: Promise<void> | null = null;
+export function ensureCouponsTable(): Promise<void> {
+  if (!ensureCouponsTablePromise) {
+    ensureCouponsTablePromise = (async () => {
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS coupons (
+          id                  SERIAL PRIMARY KEY,
+          code                TEXT UNIQUE NOT NULL,
+          discount_percent    INTEGER NOT NULL,
+          max_discount_amount INTEGER,
+          min_order_amount    INTEGER,
+          usage_limit         INTEGER,
+          used_count          INTEGER NOT NULL DEFAULT 0,
+          active              BOOLEAN NOT NULL DEFAULT true,
+          expires_at          TIMESTAMP,
+          created_at          TIMESTAMP NOT NULL DEFAULT NOW()
+        )
+      `);
+    })();
+  }
+  return ensureCouponsTablePromise;
 }
 
 let ensureManualInvoicesPromise: Promise<void> | null = null;

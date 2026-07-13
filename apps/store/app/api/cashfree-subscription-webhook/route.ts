@@ -17,13 +17,18 @@ export async function POST(req: NextRequest) {
     const timestamp = req.headers.get("x-webhook-timestamp");
     const secretKey = process.env.CASHFREE_SECRET_KEY;
 
-    if (signature && timestamp && secretKey) {
-      const expectedSig = createHmac("sha256", secretKey)
-        .update(timestamp + rawBody)
-        .digest("base64");
-      if (expectedSig !== signature) {
-        return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
-      }
+    if (!secretKey) {
+      console.error("cashfree-subscription-webhook: CASHFREE_SECRET_KEY not configured");
+      return NextResponse.json({ error: "Server misconfigured" }, { status: 500 });
+    }
+    if (!signature || !timestamp) {
+      return NextResponse.json({ error: "Missing signature" }, { status: 401 });
+    }
+    const expectedSig = createHmac("sha256", secretKey)
+      .update(timestamp + rawBody)
+      .digest("base64");
+    if (expectedSig !== signature) {
+      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
 
     const event = JSON.parse(rawBody);
