@@ -57,7 +57,7 @@ export function ensureCouponsTable(): Promise<void> {
         CREATE TABLE IF NOT EXISTS coupons (
           id                  SERIAL PRIMARY KEY,
           code                TEXT UNIQUE NOT NULL,
-          discount_percent    INTEGER NOT NULL,
+          discount_percent    REAL NOT NULL,
           max_discount_amount INTEGER,
           min_order_amount    INTEGER,
           usage_limit         INTEGER,

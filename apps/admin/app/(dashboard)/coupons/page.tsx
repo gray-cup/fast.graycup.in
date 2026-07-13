@@ -122,9 +122,9 @@ export default function CouponsPage() {
           </div>
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1">Discount % *</label>
-            <input required type="number" min={1} max={100} value={form.discountPercent}
+            <input required type="number" min={0.01} max={100} step={0.01} value={form.discountPercent}
               onChange={(e) => setForm({ ...form, discountPercent: e.target.value })}
-              placeholder="10" className={inputClass} />
+              placeholder="10 or 27.45" className={inputClass} />
           </div>
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1">Max Discount (₹)</label>

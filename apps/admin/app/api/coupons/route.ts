@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
       .insert(schema.coupons)
       .values({
         code: normalizedCode,
-        discountPercent: Math.round(percent),
+        discountPercent: Math.round(percent * 100) / 100,
         maxDiscountAmount: maxDiscountAmount != null && maxDiscountAmount !== "" ? Math.round(Number(maxDiscountAmount)) : null,
         minOrderAmount: minOrderAmount != null && minOrderAmount !== "" ? Math.round(Number(minOrderAmount)) : null,
         usageLimit: usageLimit != null && usageLimit !== "" ? Math.round(Number(usageLimit)) : null,
