@@ -41,7 +41,8 @@ export async function POST(req: NextRequest) {
       .returning();
     return NextResponse.json(created);
   } catch (err: any) {
-    if (err?.code === "23505") {
+    const cause = err?.cause ?? err;
+    if (cause?.code === "23505") {
       return NextResponse.json({ error: "A coupon with this code already exists" }, { status: 409 });
     }
     console.error("create coupon:", err);
@@ -49,12 +50,12 @@ export async function POST(req: NextRequest) {
       {
         error: "Failed to create coupon",
         _debug: {
-          message: err?.message ?? String(err),
-          code: err?.code,
-          detail: err?.detail,
-          hint: err?.hint,
-          column: err?.column,
-          table: err?.table,
+          message: cause?.message ?? err?.message ?? String(err),
+          code: cause?.code,
+          detail: cause?.detail,
+          hint: cause?.hint,
+          column: cause?.column,
+          table: cause?.table,
         },
       },
       { status: 500 }
