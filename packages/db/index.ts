@@ -67,6 +67,8 @@ export function ensureCouponsTable(): Promise<void> {
           created_at          TIMESTAMP NOT NULL DEFAULT NOW()
         )
       `);
+      // Older deploys created this column as INTEGER before percent discounts needed decimals.
+      await db.execute(sql`ALTER TABLE coupons ALTER COLUMN discount_percent TYPE REAL`);
     })();
   }
   return ensureCouponsTablePromise;
