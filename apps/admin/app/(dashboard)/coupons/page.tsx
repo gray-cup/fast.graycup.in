@@ -67,7 +67,10 @@ export default function CouponsPage() {
         body: JSON.stringify(form),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to create coupon");
+      if (!res.ok) {
+        if (data._debug) console.error("create coupon failed:", data._debug);
+        throw new Error(data._debug?.message ? `${data.error}: ${data._debug.message}` : data.error || "Failed to create coupon");
+      }
       showToast("success", `Coupon ${data.code} created`);
       setForm(emptyForm);
       load();
