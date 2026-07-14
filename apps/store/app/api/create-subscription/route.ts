@@ -17,6 +17,7 @@ interface SubscriptionPayload {
     address: string;
     pincode: string;
   };
+  durationMonths?: number;
 }
 
 export async function POST(req: NextRequest) {
@@ -68,13 +69,16 @@ export async function POST(req: NextRequest) {
     };
 
     // Plans must exist before a subscription can reference them. Reuse one plan
-    // per product+variant+price combo — create it if missing, ignore if it already exists.
-    const planId = `plan-${product.id}-${variant.label}-${amount}`
+    // per product+variant+price+duration combo — create it if missing, ignore if it already exists.
+    const duration = body.durationMonths || 120; // Default 120 months (Ongoing)
+    const durationLabel = duration === 120 ? "ongoing" : `${duration}m`;
+
+    const planId = `plan-${product.id}-${variant.label}-${amount}-${durationLabel}`
       .toLowerCase()
       .replace(/[^a-z0-9.\-_]/g, "-")
       .slice(0, 40);
 
-    const planName = `${product.name} Monthly`
+    const planName = `${product.name} Monthly (${duration === 120 ? 'Ongoing' : `${duration} Months`})`
       .replace(/[^a-zA-Z0-9 _-]/g, "")
       .replace(/\s+/g, " ")
       .trim()
@@ -90,7 +94,7 @@ export async function POST(req: NextRequest) {
         plan_currency: "INR",
         plan_recurring_amount: amount,
         plan_max_amount: amount,
-        plan_max_cycles: 120,
+        plan_max_cycles: duration,
         plan_intervals: 1,
         plan_interval_type: "MONTH",
       }),

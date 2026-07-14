@@ -42,6 +42,7 @@ export default function SubscribeModal({
     email: "",
     ...loadSavedCheckoutInfo(),
   }));
+  const [durationMonths, setDurationMonths] = useState<number>(120);
 
   const overlayRef = useRef<HTMLDivElement>(null);
   const isCoffee = product.category === "Coffee";
@@ -80,6 +81,7 @@ export default function SubscribeModal({
           productId: product.id,
           variantLabel: variant.label,
           quantity,
+          durationMonths,
           customer: {
             ...form,
             address: `${form.address}, ${form.city}, ${form.state}`,
@@ -152,8 +154,40 @@ export default function SubscribeModal({
           {/* Form */}
           {step === "form" && (
             <form id="subscribe-form" onSubmit={handleSubmit} className="px-6 pt-2 pb-4 flex flex-col gap-4">
+              {/* Duration Picker */}
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1.5">Subscription Duration</label>
+                <div className="flex gap-2">
+                  {[
+                    { label: "Ongoing", value: 120 },
+                    { label: "3 Months", value: 3 },
+                    { label: "6 Months", value: 6 },
+                  ].map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setDurationMonths(opt.value)}
+                      className={`flex-1 py-2 text-sm font-bold rounded-xl border transition-all ${
+                        durationMonths === opt.value
+                          ? isCoffee 
+                            ? "bg-stone-900 text-white border-stone-900"
+                            : "bg-amber-500 text-white border-amber-500"
+                          : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+                {durationMonths !== 120 && (
+                  <p className="text-xs text-gray-500 mt-2">
+                    You will be charged ₹{monthlyTotal} monthly for {durationMonths} months. Auto-cancels afterwards.
+                  </p>
+                )}
+              </div>
+
               {/* Row 1: Name + Phone */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3 mt-1">
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-1.5">Full Name</label>
                   <input name="name" type="text" value={form.name} onChange={handleChange}
