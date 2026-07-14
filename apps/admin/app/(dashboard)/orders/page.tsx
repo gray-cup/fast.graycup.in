@@ -314,8 +314,8 @@ function RowActions({
             </button>
           )}
 
-          {/* Switch carrier — shown whenever the order has a tracking ID and is still actionable */}
-          {["PAID", "PAID_DISPATCH_PENDING"].includes(normalizedStatus) && (order.delhiveryWaybill || order.shadowfaxRequestId) && (
+          {/* Switch carrier — shown whenever the order has a tracking ID and is still switchable */}
+          {["PAID", "PAID_DISPATCH_PENDING", "DISPATCHED"].includes(normalizedStatus) && (order.delhiveryWaybill || order.shadowfaxRequestId) && (
             <button
               onClick={() => { onSwitchCarrier(); setOpen(false); }}
               disabled={busy}

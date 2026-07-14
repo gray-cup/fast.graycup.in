@@ -29,8 +29,8 @@ export async function POST(
   const [order] = await db.select().from(schema.orders).where(eq(schema.orders.orderRef, orderRef));
   if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404 });
 
-  if (!["PAID", "PAID_DISPATCH_PENDING"].includes(order.status)) {
-    return NextResponse.json({ error: "Order must be in PAID or PAID_DISPATCH_PENDING status" }, { status: 400 });
+  if (!["PAID", "PAID_DISPATCH_PENDING", "DISPATCHED"].includes(order.status)) {
+    return NextResponse.json({ error: "Order must be in PAID, PAID_DISPATCH_PENDING, or DISPATCHED status" }, { status: 400 });
   }
 
   // Use actual tracking IDs to determine current carrier, not the carrier field
