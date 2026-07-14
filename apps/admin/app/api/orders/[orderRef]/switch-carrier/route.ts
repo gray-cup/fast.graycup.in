@@ -11,8 +11,8 @@ import { sendTrackingEmail } from "@/lib/email";
  * Body: { to: "delhivery" | "shadowfax" }
  *
  * Switches the delivery partner for a PAID_DISPATCH_PENDING order.
- * - Delhivery → Shadowfax: cancels Delhivery waybill, creates Shadowfax order
- * - Shadowfax → Delhivery: cancels Shadowfax order, creates Delhivery waybill
+ * - Delhivery → Shadowfax: cancels Delhivery waybill (best-effort), creates Shadowfax order
+ * - Shadowfax → Delhivery: cancels Shadowfax order (best-effort), creates Delhivery waybill
  */
 export async function POST(
   req: NextRequest,
@@ -29,14 +29,20 @@ export async function POST(
   const [order] = await db.select().from(schema.orders).where(eq(schema.orders.orderRef, orderRef));
   if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404 });
 
-  const currentCarrier = order.carrier ?? (order.delhiveryWaybill ? "delhivery" : null);
-
-  if (currentCarrier === to) {
-    return NextResponse.json({ error: `Order is already using ${to}` }, { status: 400 });
-  }
-
   if (!["PAID", "PAID_DISPATCH_PENDING"].includes(order.status)) {
     return NextResponse.json({ error: "Order must be in PAID or PAID_DISPATCH_PENDING status" }, { status: 400 });
+  }
+
+  // Use actual tracking IDs to determine current carrier, not the carrier field
+  // (carrier field defaults to "delhivery" in DB for all rows, so it's not reliable alone)
+  const hasDelhiveryWaybill = !!order.delhiveryWaybill;
+  const hasShadowfaxId = !!order.shadowfaxRequestId;
+
+  if (to === "shadowfax" && hasShadowfaxId && !hasDelhiveryWaybill) {
+    return NextResponse.json({ error: "Order is already using Shadowfax" }, { status: 400 });
+  }
+  if (to === "delhivery" && hasDelhiveryWaybill && !hasShadowfaxId) {
+    return NextResponse.json({ error: "Order is already using Delhivery" }, { status: 400 });
   }
 
   // ── Switch to Shadowfax ────────────────────────────────────────────────────
@@ -45,14 +51,14 @@ export async function POST(
     if (order.delhiveryWaybill) {
       const cancelResult = await cancelShipment(order.delhiveryWaybill).catch(() => ({ success: false, error: "cancel failed" }));
       if (!cancelResult.success) {
-        // Log but don't block — admin may cancel manually
+        // Log but don't block — admin can cancel Delhivery manually later
         console.warn(`[switch-carrier] Delhivery cancel failed for ${order.delhiveryWaybill}:`, cancelResult.error);
       }
     }
 
-    // Step 2: Clear old carrier data
+    // Step 2: Clear Delhivery data, reset status
     await db.update(schema.orders)
-      .set({ delhiveryWaybill: null, delhiveryPickupDate: null, carrier: null, status: "PAID" })
+      .set({ delhiveryWaybill: null, delhiveryPickupDate: null, status: "PAID" })
       .where(eq(schema.orders.orderRef, orderRef));
 
     // Step 3: Create Shadowfax order
@@ -70,12 +76,12 @@ export async function POST(
     });
 
     if (!result.success || !result.requestId) {
-      // Restore previous Delhivery state if Shadowfax fails
+      // Restore previous Delhivery state if Shadowfax creation fails
       await db.update(schema.orders)
         .set({
           delhiveryWaybill: order.delhiveryWaybill,
           delhiveryPickupDate: order.delhiveryPickupDate,
-          carrier: order.carrier,
+          carrier: order.carrier ?? "delhivery",
           status: order.status,
         })
         .where(eq(schema.orders.orderRef, orderRef));
@@ -105,9 +111,9 @@ export async function POST(
       }
     }
 
-    // Step 2: Clear old carrier data
+    // Step 2: Clear Shadowfax data, reset status
     await db.update(schema.orders)
-      .set({ shadowfaxRequestId: null, carrier: null, status: "PAID" })
+      .set({ shadowfaxRequestId: null, carrier: "delhivery", status: "PAID" })
       .where(eq(schema.orders.orderRef, orderRef));
 
     // Step 3: Create Delhivery waybill
@@ -131,7 +137,7 @@ export async function POST(
       await db.update(schema.orders)
         .set({
           shadowfaxRequestId: order.shadowfaxRequestId,
-          carrier: order.carrier,
+          carrier: order.carrier ?? "delhivery",
           status: order.status,
         })
         .where(eq(schema.orders.orderRef, orderRef));

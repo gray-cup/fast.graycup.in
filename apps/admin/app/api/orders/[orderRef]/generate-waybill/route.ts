@@ -32,7 +32,7 @@ export async function POST(
 
   if (result.success && result.waybill) {
     await db.update(schema.orders)
-      .set({ delhiveryWaybill: result.waybill, status: "PAID_DISPATCH_PENDING" })
+      .set({ delhiveryWaybill: result.waybill, carrier: "delhivery", status: "PAID_DISPATCH_PENDING" })
       .where(eq(schema.orders.orderRef, orderRef));
     try {
       await sendTrackingEmail(order, result.waybill, "Delhivery");
