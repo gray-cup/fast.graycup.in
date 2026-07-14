@@ -57,7 +57,9 @@ export function ensureCouponsTable(): Promise<void> {
         CREATE TABLE IF NOT EXISTS coupons (
           id                  SERIAL PRIMARY KEY,
           code                TEXT UNIQUE NOT NULL,
-          discount_percent    REAL NOT NULL,
+          discount_type       TEXT NOT NULL DEFAULT 'PERCENTAGE',
+          discount_amount     INTEGER,
+          discount_percent    REAL,
           max_discount_amount INTEGER,
           min_order_amount    INTEGER,
           usage_limit         INTEGER,
@@ -67,6 +69,9 @@ export function ensureCouponsTable(): Promise<void> {
           created_at          TIMESTAMP NOT NULL DEFAULT NOW()
         )
       `);
+      await db.execute(sql`ALTER TABLE coupons ADD COLUMN IF NOT EXISTS discount_type TEXT NOT NULL DEFAULT 'PERCENTAGE'`);
+      await db.execute(sql`ALTER TABLE coupons ADD COLUMN IF NOT EXISTS discount_amount INTEGER`);
+      await db.execute(sql`ALTER TABLE coupons ALTER COLUMN discount_percent DROP NOT NULL`);
     })();
   }
   return ensureCouponsTablePromise;

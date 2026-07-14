@@ -43,7 +43,12 @@ export async function validateCoupon(rawCode: string | undefined | null, subtota
     return { valid: false, error: `Minimum order amount for this coupon is ₹${c.minOrderAmount}`, discountAmount: 0 };
   }
 
-  let discountAmount = Math.round((subtotal * c.discountPercent) / 100);
+  let discountAmount = 0;
+  if (c.discountType === "FIXED" && c.discountAmount != null) {
+    discountAmount = c.discountAmount;
+  } else if (c.discountPercent != null) {
+    discountAmount = Math.round((subtotal * c.discountPercent) / 100);
+  }
   if (c.maxDiscountAmount !== null) {
     discountAmount = Math.min(discountAmount, c.maxDiscountAmount);
   }

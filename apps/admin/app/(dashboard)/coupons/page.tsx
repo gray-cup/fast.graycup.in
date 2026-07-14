@@ -5,7 +5,9 @@ import { useState, useEffect, useCallback } from "react";
 type Coupon = {
   id: number;
   code: string;
-  discountPercent: number;
+  discountType: "PERCENTAGE" | "FIXED";
+  discountAmount: number | null;
+  discountPercent: number | null;
   maxDiscountAmount: number | null;
   minOrderAmount: number | null;
   usageLimit: number | null;
@@ -27,6 +29,8 @@ function Toast({ type, msg }: { type: "success" | "error"; msg: string }) {
 
 const emptyForm = {
   code: "",
+  discountType: "PERCENTAGE",
+  discountAmount: "",
   discountPercent: "",
   maxDiscountAmount: "",
   minOrderAmount: "",
@@ -124,17 +128,35 @@ export default function CouponsPage() {
               placeholder="WELCOME10" className={inputClass} />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1">Discount % *</label>
-            <input required type="number" min={0.01} max={100} step={0.01} value={form.discountPercent}
-              onChange={(e) => setForm({ ...form, discountPercent: e.target.value })}
-              placeholder="10 or 27.45" className={inputClass} />
+            <label className="block text-xs font-semibold text-gray-600 mb-1">Discount Type</label>
+            <select value={form.discountType} onChange={(e) => setForm({ ...form, discountType: e.target.value })} className={inputClass}>
+              <option value="PERCENTAGE">Percentage (%)</option>
+              <option value="FIXED">Fixed Amount (₹)</option>
+            </select>
           </div>
-          <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1">Max Discount (₹)</label>
-            <input type="number" min={0} value={form.maxDiscountAmount}
-              onChange={(e) => setForm({ ...form, maxDiscountAmount: e.target.value })}
-              placeholder="Optional" className={inputClass} />
-          </div>
+          {form.discountType === "PERCENTAGE" ? (
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">Discount % *</label>
+              <input required type="number" min={0.01} max={100} step={0.01} value={form.discountPercent}
+                onChange={(e) => setForm({ ...form, discountPercent: e.target.value })}
+                placeholder="10 or 27.45" className={inputClass} />
+            </div>
+          ) : (
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">Discount Amount (₹) *</label>
+              <input required type="number" min={1} value={form.discountAmount}
+                onChange={(e) => setForm({ ...form, discountAmount: e.target.value })}
+                placeholder="150" className={inputClass} />
+            </div>
+          )}
+          {form.discountType === "PERCENTAGE" && (
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">Max Discount (₹)</label>
+              <input type="number" min={0} value={form.maxDiscountAmount}
+                onChange={(e) => setForm({ ...form, maxDiscountAmount: e.target.value })}
+                placeholder="Optional" className={inputClass} />
+            </div>
+          )}
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1">Min Order (₹)</label>
             <input type="number" min={0} value={form.minOrderAmount}
@@ -183,7 +205,11 @@ export default function CouponsPage() {
                 <tr key={c.id} className="border-b border-gray-100 hover:bg-gray-50/70 transition-colors">
                   <td className="px-4 py-3 font-mono font-bold text-gray-900">{c.code}</td>
                   <td className="px-4 py-3 text-right">
-                    {c.discountPercent}%{c.maxDiscountAmount ? ` (max ₹${c.maxDiscountAmount})` : ""}
+                    {c.discountType === "FIXED" ? (
+                      `₹${c.discountAmount}`
+                    ) : (
+                      <>{c.discountPercent}%{c.maxDiscountAmount ? ` (max ₹${c.maxDiscountAmount})` : ""}</>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-right text-gray-600">{c.minOrderAmount ? `₹${c.minOrderAmount}` : "—"}</td>
                   <td className="px-4 py-3 text-right text-gray-600">

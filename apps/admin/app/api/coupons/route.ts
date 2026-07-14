@@ -12,14 +12,27 @@ export async function POST(req: NextRequest) {
   await ensureCouponsTable();
 
   const body = await req.json();
-  const { code, discountPercent, maxDiscountAmount, minOrderAmount, usageLimit, expiresAt } = body;
+  const { code, discountType, discountAmount, discountPercent, maxDiscountAmount, minOrderAmount, usageLimit, expiresAt } = body;
 
   if (!code || typeof code !== "string" || !code.trim()) {
     return NextResponse.json({ error: "Coupon code is required" }, { status: 400 });
   }
-  const percent = Number(discountPercent);
-  if (!Number.isFinite(percent) || percent <= 0 || percent > 100) {
-    return NextResponse.json({ error: "Discount percent must be between 1 and 100" }, { status: 400 });
+
+  const type = discountType === "FIXED" ? "FIXED" : "PERCENTAGE";
+
+  let percent: number | null = null;
+  let amount: number | null = null;
+
+  if (type === "PERCENTAGE") {
+    percent = Number(discountPercent);
+    if (!Number.isFinite(percent) || percent <= 0 || percent > 100) {
+      return NextResponse.json({ error: "Discount percent must be between 1 and 100" }, { status: 400 });
+    }
+  } else {
+    amount = Number(discountAmount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return NextResponse.json({ error: "Discount amount must be greater than 0" }, { status: 400 });
+    }
   }
 
   const normalizedCode = code.trim().toUpperCase().replace(/[^A-Z0-9_-]/g, "");
@@ -32,7 +45,9 @@ export async function POST(req: NextRequest) {
       .insert(schema.coupons)
       .values({
         code: normalizedCode,
-        discountPercent: Math.round(percent * 100) / 100,
+        discountType: type,
+        discountAmount: amount != null ? Math.round(amount) : null,
+        discountPercent: percent != null ? Math.round(percent * 100) / 100 : null,
         maxDiscountAmount: maxDiscountAmount != null && maxDiscountAmount !== "" ? Math.round(Number(maxDiscountAmount)) : null,
         minOrderAmount: minOrderAmount != null && minOrderAmount !== "" ? Math.round(Number(minOrderAmount)) : null,
         usageLimit: usageLimit != null && usageLimit !== "" ? Math.round(Number(usageLimit)) : null,

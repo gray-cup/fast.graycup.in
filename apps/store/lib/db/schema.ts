@@ -35,7 +35,9 @@ export type NewOrder = typeof orders.$inferInsert;
 export const coupons = pgTable("coupons", {
   id: serial("id").primaryKey(),
   code: text("code").unique().notNull(),
-  discountPercent: real("discount_percent").notNull(),
+  discountType: text("discount_type").notNull().default("PERCENTAGE"),
+  discountAmount: integer("discount_amount"),
+  discountPercent: real("discount_percent"),
   maxDiscountAmount: integer("max_discount_amount"),
   minOrderAmount: integer("min_order_amount"),
   usageLimit: integer("usage_limit"),
