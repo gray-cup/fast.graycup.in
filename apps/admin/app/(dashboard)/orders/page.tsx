@@ -221,7 +221,7 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
 
 function RowActions({
   order, busy,
-  onView, onCreateWaybill, onCreateShadowfax, onRetriggerShadowfax, onTriggerPickup, onSyncStatus, onVerifyPayment, onCancel, onShadowfaxCancel, onMarkDelivered, onRefund, onDelete,
+  onView, onCreateWaybill, onCreateShadowfax, onRetriggerShadowfax, onTriggerPickup, onSyncStatus, onVerifyPayment, onCancel, onShadowfaxCancel, onMarkDelivered, onRefund, onDelete, onSwitchCarrier,
 }: {
   order: Order; busy: boolean;
   onView: () => void;
@@ -236,6 +236,7 @@ function RowActions({
   onMarkDelivered: () => void;
   onRefund: () => void;
   onDelete: () => void;
+  onSwitchCarrier: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -310,6 +311,19 @@ function RowActions({
               className="w-full text-left px-4 py-2 text-sm hover:bg-indigo-50 text-indigo-600 disabled:opacity-40"
             >
               Re-trigger Shadowfax
+            </button>
+          )}
+
+          {/* Switch carrier — shown when order already has a carrier assigned */}
+          {normalizedStatus === "PAID_DISPATCH_PENDING" && (order.delhiveryWaybill || order.shadowfaxRequestId) && (
+            <button
+              onClick={() => { onSwitchCarrier(); setOpen(false); }}
+              disabled={busy}
+              className="w-full text-left px-4 py-2 text-sm hover:bg-teal-50 text-teal-700 font-semibold disabled:opacity-40"
+            >
+              {order.carrier === "shadowfax"
+                ? "⇄ Switch to Delhivery"
+                : "⇄ Switch to Shadowfax"}
             </button>
           )}
 
@@ -892,6 +906,32 @@ export default function OrdersPage() {
     setBusy(false);
   };
 
+  const switchCarrier = async (orderRef: string) => {
+    const order = orders.find((o) => o.orderRef === orderRef);
+    if (!order) return;
+    const currentCarrier = order.carrier ?? (order.delhiveryWaybill ? "delhivery" : null);
+    const targetCarrier = currentCarrier === "shadowfax" ? "delhivery" : "shadowfax";
+    const targetLabel = targetCarrier === "shadowfax" ? "Shadowfax" : "Delhivery";
+    if (!confirm(`Switch delivery partner for ${orderRef} to ${targetLabel}? The current shipment will be cancelled and a new one created with ${targetLabel}.`)) return;
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/orders/${orderRef}/switch-carrier`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ to: targetCarrier }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        const id = data.waybill ?? data.requestId ?? "";
+        showToast("success", `Switched to ${targetLabel}${id ? `: ${id}` : ""}`);
+        loadOrders();
+      } else {
+        showToast("error", data.error || `Failed to switch to ${targetLabel}`);
+      }
+    } catch { showToast("error", "Request failed"); }
+    setBusy(false);
+  };
+
   const bulkCreateShadowfaxOrders = async () => {
     if (selectedUnfulfilledSfx.length === 0) { showToast("error", "Select PAID orders first"); return; }
     setBusy(true);
@@ -1154,6 +1194,7 @@ export default function OrdersPage() {
                       onMarkDelivered={() => markDelivered(o.orderRef)}
                       onRefund={() => refundOrder(o.orderRef)}
                       onDelete={() => deleteOrder(o.orderRef)}
+                      onSwitchCarrier={() => switchCarrier(o.orderRef)}
                     />
                   </td>
                 </tr>
