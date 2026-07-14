@@ -95,7 +95,7 @@ export default function SubscribeModal({
 
       const { load } = await import("@cashfreepayments/cashfree-js");
       const cashfree = await load({ mode: cfMode });
-      cashfree.checkout({ paymentSessionId: data.subscriptionSessionId, redirectTarget: "_self" });
+      cashfree.subscriptionsCheckout({ subsSessionId: data.subscriptionSessionId, redirectTarget: "_self" });
     } catch (err) {
       console.error(err);
       setErrorMsg(err instanceof Error ? err.message : "Something went wrong. Please try again.");
