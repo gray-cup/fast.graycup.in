@@ -139,7 +139,7 @@ export default function CheckoutModal({
       });
 
       const data = await res.json();
-      const cfMode = (process.env.NEXT_PUBLIC_CASHFREE_MODE as "sandbox" | "production") || "sandbox";
+      const cfMode = data.environment || "sandbox";
       console.log("[checkout] server debug:", data._debug);
       console.log("[checkout] client SDK mode:", cfMode);
       console.log("[checkout] sessionId prefix:", data.paymentSessionId?.slice(0, 16));

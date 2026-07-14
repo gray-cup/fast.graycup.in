@@ -128,7 +128,7 @@ export default function CartCheckoutModal({ onClose }: { onClose: () => void }) 
       });
 
       const data = await res.json();
-      const cfMode = (process.env.NEXT_PUBLIC_CASHFREE_MODE as "sandbox" | "production") || "sandbox";
+      const cfMode = data.environment || "sandbox";
       console.log("[cart-checkout] server debug:", data._debug);
       console.log("[cart-checkout] client SDK mode:", cfMode);
       console.log("[cart-checkout] sessionId prefix:", data.paymentSessionId?.slice(0, 16));

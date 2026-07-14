@@ -162,6 +162,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       subscriptionRef,
       subscriptionSessionId: cfData.subscription_session_id,
+      environment: cashfreeEnv,
     });
   } catch (err) {
     console.error("create-subscription:", err);

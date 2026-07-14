@@ -188,7 +188,7 @@ export async function POST(req: NextRequest) {
         "Content-Type": "application/json",
         "x-client-id": appId,
         "x-client-secret": secretKey,
-        "x-api-version": "2023-08-01",
+        "x-api-version": "2025-01-01",
       },
       body: JSON.stringify({
         order_id: orderRef,
@@ -257,6 +257,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       orderRef,
       paymentSessionId: cfData.payment_session_id,
+      environment: cashfreeEnv,
       _debug: { cashfreeEnv, apiBase, cfOrderId: cfData.cf_order_id, appIdPrefix: appId.slice(0, 8) },
     });
   } catch (err) {

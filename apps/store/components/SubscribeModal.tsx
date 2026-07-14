@@ -88,7 +88,7 @@ export default function SubscribeModal({
       });
 
       const data = await res.json();
-      const cfMode = (process.env.NEXT_PUBLIC_CASHFREE_MODE as "sandbox" | "production") || "sandbox";
+      const cfMode = data.environment || "sandbox";
       if (!res.ok) throw new Error(data.error || "Failed to create subscription");
 
       saveCheckoutInfo(form);
