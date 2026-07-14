@@ -42,7 +42,6 @@ export default function SubscribeModal({
     email: "",
     ...loadSavedCheckoutInfo(),
   }));
-  const [isOngoing, setIsOngoing] = useState(true);
   const [durationMonths, setDurationMonths] = useState(6);
 
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -82,7 +81,7 @@ export default function SubscribeModal({
           productId: product.id,
           variantLabel: variant.label,
           quantity,
-          durationMonths: isOngoing ? 120 : durationMonths,
+          durationMonths,
           customer: {
             ...form,
             address: `${form.address}, ${form.city}, ${form.state}`,
@@ -157,50 +156,29 @@ export default function SubscribeModal({
             <form id="subscribe-form" onSubmit={handleSubmit} className="px-6 pt-2 pb-4 flex flex-col gap-4">
               {/* Duration Picker */}
               <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-sm font-bold text-gray-700">Subscription Duration</label>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-600 cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      checked={isOngoing} 
-                      onChange={(e) => setIsOngoing(e.target.checked)} 
-                      className={`w-4 h-4 rounded border-gray-300 ${isCoffee ? "text-stone-900 focus:ring-stone-900" : "text-amber-500 focus:ring-amber-500"}`}
-                    />
-                    Ongoing
-                  </label>
-                </div>
-                
-                {!isOngoing && (
-                  <div className="mt-3 bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-                    <div className="flex justify-between items-end mb-3">
-                      <span className="text-2xl font-black text-gray-900">{durationMonths} Months</span>
-                      <span className="text-sm font-bold text-gray-500">₹{monthlyTotal * durationMonths} total commitment</span>
-                    </div>
-                    <input
-                      type="range"
-                      min="2"
-                      max="12"
-                      value={durationMonths}
-                      onChange={(e) => setDurationMonths(Number(e.target.value))}
-                      className={`w-full h-2 rounded-lg appearance-none cursor-pointer ${isCoffee ? "accent-stone-900 bg-stone-200" : "accent-amber-500 bg-amber-200"}`}
-                    />
-                    <div className="flex justify-between text-xs text-gray-400 font-bold mt-2 px-1">
-                      <span>2m</span>
-                      <span>6m</span>
-                      <span>12m</span>
-                    </div>
+                <label className="block text-sm font-bold text-gray-700 mb-1.5">Subscription Duration</label>
+                <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                  <div className="flex justify-between items-end mb-3">
+                    <span className="text-2xl font-black text-gray-900">{durationMonths} Months</span>
+                    <span className="text-sm font-bold text-gray-500">₹{monthlyTotal * durationMonths} total commitment</span>
                   </div>
-                )}
-                {isOngoing && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    You will be charged ₹{monthlyTotal} monthly until you cancel.
-                  </p>
-                )}
-                {!isOngoing && (
-                  <p className="text-xs text-gray-500 mt-3">
-                    You will be charged ₹{monthlyTotal} monthly for {durationMonths} months. Auto-cancels afterwards.
-                  </p>
-                )}
+                  <input
+                    type="range"
+                    min="2"
+                    max="24"
+                    value={durationMonths}
+                    onChange={(e) => setDurationMonths(Number(e.target.value))}
+                    className={`w-full h-2 rounded-lg appearance-none cursor-pointer ${isCoffee ? "accent-stone-900 bg-stone-200" : "accent-amber-500 bg-amber-200"}`}
+                  />
+                  <div className="flex justify-between text-xs text-gray-400 font-bold mt-2 px-1">
+                    <span>2m</span>
+                    <span>12m</span>
+                    <span>24m</span>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  You will be charged ₹{monthlyTotal} monthly for {durationMonths} months. Auto-cancels afterwards.
+                </p>
               </div>
 
               {/* Row 1: Name + Phone */}
