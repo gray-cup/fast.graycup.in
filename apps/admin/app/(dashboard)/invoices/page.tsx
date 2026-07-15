@@ -118,7 +118,7 @@ export default function InvoicesPage() {
             <button
               onClick={processInvoices}
               disabled={processing || generating}
-              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-lg transition-colors disabled:opacity-50"
+              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-lg transition-colors disabled:opacity-50 cursor-pointer"
             >
               {processing ? "Processing..." : `Process to Docs (${selected.size})`}
             </button>

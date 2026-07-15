@@ -64,7 +64,7 @@ function LoginContent() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-stone-900 hover:bg-stone-800 text-white font-black py-3 rounded-xl transition-colors disabled:opacity-50"
+              className="w-full bg-stone-900 hover:bg-stone-800 text-white font-black py-3 rounded-xl transition-colors disabled:opacity-50 cursor-pointer"
             >
               {loading ? "Sending…" : "Send Sign-In Link"}
             </button>

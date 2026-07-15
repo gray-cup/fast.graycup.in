@@ -73,7 +73,7 @@ function InTransitOrders() {
           <h2 className="font-bold text-gray-800">Unresolved Orders</h2>
           <p className="text-xs text-gray-400 mt-0.5">Paid, awaiting, or in-transit orders — mark as delivered if fulfilled manually</p>
         </div>
-        <button onClick={load} className="text-xs text-gray-400 hover:text-gray-600 transition-colors">Refresh</button>
+        <button onClick={load} className="text-xs text-gray-400 hover:text-gray-600 transition-colors cursor-pointer">Refresh</button>
       </div>
 
       {toast && (
@@ -453,7 +453,7 @@ export default function ManualInvoicePage() {
           <button
             onClick={generate}
             disabled={!canGenerate || generating}
-            className="w-full py-3 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-200 disabled:text-gray-400 text-white font-bold rounded-xl transition-colors text-sm"
+            className="w-full py-3 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-200 disabled:text-gray-400 text-white font-bold rounded-xl transition-colors text-sm cursor-pointer"
           >
             {generating ? "Generating…" : "Generate Invoice"}
           </button>
@@ -463,7 +463,7 @@ export default function ManualInvoicePage() {
         <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden flex flex-col">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
             <h2 className="font-bold text-gray-800">Saved Manual Invoices</h2>
-            <button onClick={fetchSaved} className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
+            <button onClick={fetchSaved} className="text-xs text-gray-400 hover:text-gray-600 transition-colors cursor-pointer">
               Refresh
             </button>
           </div>

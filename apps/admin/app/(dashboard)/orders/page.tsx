@@ -126,7 +126,7 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold transition-colors cursor-pointer"
           >✕</button>
         </div>
 
@@ -532,7 +532,7 @@ function MarkDeliveredModal({
         <div className="flex gap-2">
           <button
             onClick={onClose}
-            className="flex-1 py-2.5 text-sm font-semibold text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+            className="flex-1 py-2.5 text-sm font-semibold text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer"
           >
             Cancel
           </button>
@@ -1000,7 +1000,7 @@ export default function OrdersPage() {
               <button
                 onClick={bulkGenerateWaybills}
                 disabled={busy}
-                className="px-3 py-1.5 text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50 transition-colors"
+                className="px-3 py-1.5 text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50 transition-colors cursor-pointer"
               >
                 Delhivery Waybills ({selectedUnfulfilled.length})
               </button>
@@ -1010,7 +1010,7 @@ export default function OrdersPage() {
               <button
                 onClick={bulkCreateShadowfaxOrders}
                 disabled={busy}
-                className="px-3 py-1.5 text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg disabled:opacity-50 transition-colors"
+                className="px-3 py-1.5 text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg disabled:opacity-50 transition-colors cursor-pointer"
               >
                 Shadowfax Orders ({selectedUnfulfilledSfx.length})
               </button>
@@ -1020,7 +1020,7 @@ export default function OrdersPage() {
               <button
                 onClick={downloadLabels}
                 disabled={busy}
-                className="px-3 py-1.5 text-sm font-semibold bg-stone-800 hover:bg-stone-900 text-white rounded-lg disabled:opacity-50 transition-colors"
+                className="px-3 py-1.5 text-sm font-semibold bg-stone-800 hover:bg-stone-900 text-white rounded-lg disabled:opacity-50 transition-colors cursor-pointer"
               >
                 Shipping Labels ({selectedWithWaybill.length})
               </button>

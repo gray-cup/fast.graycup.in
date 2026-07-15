@@ -32,7 +32,7 @@ export default function CartDrawer({ onClose }: { onClose: () => void }) {
       <div
         ref={overlayRef}
         onClick={onClose}
-        className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
+        className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm cursor-pointer"
       />
 
       {/* Drawer */}

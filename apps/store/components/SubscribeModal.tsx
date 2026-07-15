@@ -124,7 +124,7 @@ export default function SubscribeModal({
     <div
       ref={overlayRef}
       onClick={handleOverlayClick}
-      className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-stretch sm:items-center justify-center"
+      className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-stretch sm:items-center justify-center cursor-pointer"
     >
       <div className="bg-white w-full sm:max-w-xl sm:rounded-3xl sm:m-4 sm:max-h-[90dvh] flex flex-col overflow-hidden">
         {/* Header */}
@@ -137,7 +137,7 @@ export default function SubscribeModal({
           </div>
           <button
             onClick={onClose}
-            className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors text-gray-600 font-bold"
+            className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors text-gray-600 font-bold cursor-pointer"
             aria-label="Close"
           >
             ✕

@@ -101,7 +101,7 @@ export default function AccountPage() {
           <h1 className="text-3xl font-black text-gray-900">My Account</h1>
           <p className="text-gray-500 mt-1">{email}</p>
         </div>
-        <button onClick={handleLogout} className="text-sm font-bold text-gray-500 hover:text-gray-900">
+        <button onClick={handleLogout} className="text-sm font-bold text-gray-500 hover:text-gray-900 cursor-pointer">
           Sign Out
         </button>
       </div>

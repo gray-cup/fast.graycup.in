@@ -467,7 +467,7 @@ function AwaitingModal({ orders, onClose, onUpdate }: { orders: Order[]; onClose
             <h2 className="text-lg font-black text-gray-900">Awaiting Orders</h2>
             <p className="text-xs text-gray-400 mt-0.5">{awaiting.length} order{awaiting.length !== 1 ? "s" : ""} paid but not dispatched</p>
           </div>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold transition-colors">✕</button>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold transition-colors cursor-pointer">✕</button>
         </div>
 
         {toast && (
