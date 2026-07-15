@@ -78,7 +78,7 @@ function SuccessContent() {
           )}
           <Link
             href="/"
-            className="inline-block bg-amber-400 hover:bg-amber-500 text-gray-900 font-black text-base px-8 py-3 rounded-2xl transition-colors"
+            className="inline-block bg-amber-400 hover:bg-amber-500 text-gray-900 font-black text-base px-8 py-3 rounded-2xl transition-colors cursor-pointer"
           >
             Back to Store
           </Link>
@@ -117,7 +117,7 @@ function SuccessContent() {
 
         <Link
           href="/"
-          className="inline-block bg-amber-400 hover:bg-amber-500 text-gray-900 font-black text-lg px-8 py-4 rounded-2xl transition-all duration-200 hover:shadow-lg"
+          className="inline-block bg-amber-400 hover:bg-amber-500 text-gray-900 font-black text-lg px-8 py-4 rounded-2xl transition-all duration-200 hover:shadow-lg cursor-pointer"
         >
           Continue Shopping
         </Link>

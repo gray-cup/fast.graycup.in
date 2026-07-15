@@ -34,7 +34,7 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="print:hidden fixed top-12 left-0 bottom-0 w-56 z-20 bg-white border-r border-gray-200 flex flex-col">
+    <aside className="print:hidden fixed top-12 left-0 bottom-0 w-56 z-20 bg-white border-r border-gray-200 flex flex-col cursor-pointer">
       <nav className="flex-1 px-3 py-4 space-y-1">
         {navItems.map(({ href, label, icon: Icon }) => {
           const active = pathname === href;
@@ -58,7 +58,7 @@ export default function Sidebar() {
         <Link
           href="/"
           target="_blank"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-colors"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-colors cursor-pointer"
         >
           <ExternalLink size={16} strokeWidth={2.5} />
           View Store

@@ -9,7 +9,7 @@ export default function ContactPage() {
           <div className="flex flex-col gap-3">
             <a
               href="mailto:arjun@graycup.in"
-              className="flex items-center gap-4 p-5 bg-white border border-gray-200 rounded-2xl hover:border-amber-300 transition-colors group"
+              className="flex items-center gap-4 p-5 bg-white border border-gray-200 rounded-2xl hover:border-amber-300 transition-colors group cursor-pointer"
             >
               <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 shrink-0">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -23,7 +23,7 @@ export default function ContactPage() {
             </a>
             <a
               href="mailto:office@graycup.org"
-              className="flex items-center gap-4 p-5 bg-white border border-gray-200 rounded-2xl hover:border-amber-300 transition-colors group"
+              className="flex items-center gap-4 p-5 bg-white border border-gray-200 rounded-2xl hover:border-amber-300 transition-colors group cursor-pointer"
             >
               <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 shrink-0">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -39,7 +39,7 @@ export default function ContactPage() {
 
           <a
             href="tel:+918527914317"
-            className="flex items-center gap-4 p-5 bg-white border border-gray-200 rounded-2xl hover:border-amber-300 transition-colors group"
+            className="flex items-center gap-4 p-5 bg-white border border-gray-200 rounded-2xl hover:border-amber-300 transition-colors group cursor-pointer"
           >
             <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 shrink-0">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

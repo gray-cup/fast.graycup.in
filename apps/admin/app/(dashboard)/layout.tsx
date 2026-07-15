@@ -8,7 +8,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <span className="text-sm font-bold text-gray-800">Gray Cup Fast</span>
         <Clock />
         <div className="flex items-center gap-4">
-          <a href="/" target="_blank" className="text-xs font-semibold bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg transition-colors">View Store</a>
+          <a href="/" target="_blank" className="text-xs font-semibold bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg transition-colors cursor-pointer">View Store</a>
           <form action="/api/auth/logout" method="POST">
             <button type="submit" className="text-xs font-semibold bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg transition-colors cursor-pointer">Sign out</button>
           </form>

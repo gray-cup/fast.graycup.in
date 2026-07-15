@@ -207,7 +207,7 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
             href={`/invoice/${order.orderRef}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full py-3 bg-stone-900 hover:bg-stone-800 text-white font-bold text-sm rounded-xl transition-colors"
+            className="flex items-center justify-center gap-2 w-full py-3 bg-stone-900 hover:bg-stone-800 text-white font-bold text-sm rounded-xl transition-colors cursor-pointer"
           >
             Download Invoice
           </a>

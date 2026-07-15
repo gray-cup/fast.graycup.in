@@ -24,7 +24,7 @@ function SubscriptionSuccessContent() {
         )}
         <Link
           href="/"
-          className="inline-block bg-amber-500 hover:bg-amber-600 text-white font-bold px-8 py-3 rounded-xl transition-colors"
+          className="inline-block bg-amber-500 hover:bg-amber-600 text-white font-bold px-8 py-3 rounded-xl transition-colors cursor-pointer"
         >
           Back to Shop
         </Link>

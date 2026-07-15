@@ -42,7 +42,7 @@ export default function TermsPage() {
               Gray Cup Enterprises Private Limited<br />
               FF122, Rodeo Drive Mall, GT Road, TDI City<br />
               Kundli, Sonipat, Haryana — 131030<br />
-              <a href="mailto:arjun@graycup.in" className="text-amber-600 hover:underline">arjun@graycup.in</a>
+              <a href="mailto:arjun@graycup.in" className="text-amber-600 hover:underline cursor-pointer">arjun@graycup.in</a>
             </p>
           </section>
         </div>

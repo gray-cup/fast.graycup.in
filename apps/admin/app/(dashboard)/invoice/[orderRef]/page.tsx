@@ -33,7 +33,7 @@ export default async function InvoicePage({
       <div className="mb-6 flex items-center justify-between">
         <a
           href="/orders"
-          className="text-sm text-gray-500 hover:text-gray-800 transition-colors"
+          className="text-sm text-gray-500 hover:text-gray-800 transition-colors cursor-pointer"
         >
           ← Back to Orders
         </a>

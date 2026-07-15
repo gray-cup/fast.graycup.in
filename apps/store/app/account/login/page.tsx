@@ -71,7 +71,7 @@ function LoginContent() {
           </form>
         )}
 
-        <Link href="/" className="block text-center text-sm text-gray-400 hover:text-gray-600 mt-6">
+        <Link href="/" className="block text-center text-sm text-gray-400 hover:text-gray-600 mt-6 cursor-pointer">
           ← Back to Shop
         </Link>
       </div>

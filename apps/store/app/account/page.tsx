@@ -111,7 +111,7 @@ export default function AccountPage() {
         {subscriptions.length === 0 ? (
           <div className="bg-gray-50 rounded-2xl px-6 py-8 text-center">
             <p className="text-gray-500 mb-4">You don&apos;t have any subscriptions yet.</p>
-            <Link href="/" className="inline-block bg-amber-500 hover:bg-amber-600 text-white font-bold px-6 py-3 rounded-xl">
+            <Link href="/" className="inline-block bg-amber-500 hover:bg-amber-600 text-white font-bold px-6 py-3 rounded-xl cursor-pointer">
               Browse Products
             </Link>
           </div>

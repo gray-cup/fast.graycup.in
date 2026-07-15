@@ -14,8 +14,8 @@ export default function Footer() {
           <div>
             <p className="font-bold text-sm uppercase tracking-widest text-blue-200 mb-3">Policies</p>
             <ul className="space-y-2 text-base text-blue-100">
-              <li><a href="/policies/refund-returns" className="hover:text-white transition-colors">Refunds & Cancellations</a></li>
-              <li><a href="/policies/terms" className="hover:text-white transition-colors">Terms & Conditions</a></li>
+              <li><a href="/policies/refund-returns" className="hover:text-white transition-colors cursor-pointer">Refunds & Cancellations</a></li>
+              <li><a href="/policies/terms" className="hover:text-white transition-colors cursor-pointer">Terms & Conditions</a></li>
             </ul>
           </div>
 
@@ -23,9 +23,9 @@ export default function Footer() {
           <div>
             <p className="font-bold text-sm uppercase tracking-widest text-blue-200 mb-3">Contact</p>
             <ul className="space-y-2 text-base text-blue-100">
-              <li><a href="/contact" className="hover:text-white transition-colors">Contact Us</a></li>
-              <li><a href="mailto:arjun@graycup.in" className="hover:text-white transition-colors">arjun@graycup.in</a></li>
-              <li><a href="tel:+918527914317" className="hover:text-white transition-colors">+91 85279 14317</a></li>
+              <li><a href="/contact" className="hover:text-white transition-colors cursor-pointer">Contact Us</a></li>
+              <li><a href="mailto:arjun@graycup.in" className="hover:text-white transition-colors cursor-pointer">arjun@graycup.in</a></li>
+              <li><a href="tel:+918527914317" className="hover:text-white transition-colors cursor-pointer">+91 85279 14317</a></li>
             </ul>
           </div>
         </div>

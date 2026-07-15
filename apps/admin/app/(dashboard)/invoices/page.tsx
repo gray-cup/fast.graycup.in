@@ -205,14 +205,14 @@ export default function InvoicesPage() {
                         href={`/invoice/${o.orderRef}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs font-semibold text-gray-500 hover:text-gray-800 transition-colors"
+                        className="text-xs font-semibold text-gray-500 hover:text-gray-800 transition-colors cursor-pointer"
                       >
                         View
                       </a>
                       <a
                         href={`/api/invoice/${o.orderRef}`}
                         download={`Invoice-${o.orderRef}.pdf`}
-                        className="text-xs font-semibold text-amber-600 hover:text-amber-700 transition-colors"
+                        className="text-xs font-semibold text-amber-600 hover:text-amber-700 transition-colors cursor-pointer"
                       >
                         PDF
                       </a>

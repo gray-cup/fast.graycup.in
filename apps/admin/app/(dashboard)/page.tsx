@@ -635,7 +635,7 @@ function RecentOrders({ orders, period }: { orders: Order[]; period: Period }) {
     <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
       <div className="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
         <h2 className="text-[10px] font-black text-gray-900 uppercase tracking-widest">Recent Orders</h2>
-        <a href="/orders" className="text-[11px] font-semibold text-amber-600 hover:text-amber-800 transition-colors">View all →</a>
+        <a href="/orders" className="text-[11px] font-semibold text-amber-600 hover:text-amber-800 transition-colors cursor-pointer">View all →</a>
       </div>
       {visible.length === 0
         ? <p className="text-center py-10 text-sm text-gray-400">No orders in this period</p>

@@ -150,7 +150,7 @@ export default function ProductPageClient({ slug }: { slug: string }) {
       <div className="min-h-screen flex flex-col items-center justify-center gap-6 px-4">
         <h1 className="text-3xl font-black text-gray-900">Product not found</h1>
         <p className="text-gray-500">This product doesn&apos;t exist or may have been removed.</p>
-        <Link href="/" className="bg-amber-500 hover:bg-amber-600 text-white font-bold px-6 py-3 rounded-xl">
+        <Link href="/" className="bg-amber-500 hover:bg-amber-600 text-white font-bold px-6 py-3 rounded-xl cursor-pointer">
           ← Back to Shop
         </Link>
       </div>
@@ -230,7 +230,7 @@ export default function ProductPageClient({ slug }: { slug: string }) {
                   </div>
                   <Link
                     href="/product/ctc-blend"
-                    className="w-full text-center font-black text-xl py-5 rounded-2xl transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 bg-amber-500 hover:bg-amber-600 text-white"
+                    className="w-full text-center font-black text-xl py-5 rounded-2xl transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 bg-amber-500 hover:bg-amber-600 text-white cursor-pointer"
                   >
                     Pre-book 500gm Pack — Coming Soon
                   </Link>
@@ -287,7 +287,7 @@ export default function ProductPageClient({ slug }: { slug: string }) {
         {product.outOfStock ? (
           <Link
             href="/product/ctc-blend"
-            className="block w-full text-center font-black text-lg py-4 rounded-2xl transition-all bg-amber-500 hover:bg-amber-600 text-white"
+            className="block w-full text-center font-black text-lg py-4 rounded-2xl transition-all bg-amber-500 hover:bg-amber-600 text-white cursor-pointer"
           >
             Pre-book 500gm — Coming Soon
           </Link>
