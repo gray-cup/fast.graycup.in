@@ -43,6 +43,7 @@ export default function SubscribeModal({
     ...loadSavedCheckoutInfo(),
   }));
   const [durationMonths, setDurationMonths] = useState(6);
+  const [payUpfront, setPayUpfront] = useState(false);
 
   const overlayRef = useRef<HTMLDivElement>(null);
   const isCoffee = product.category === "Coffee";
@@ -74,7 +75,8 @@ export default function SubscribeModal({
     setErrorMsg("");
 
     try {
-      const res = await fetch("/api/create-subscription", {
+      const endpoint = payUpfront ? "/api/create-order" : "/api/create-subscription";
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -82,6 +84,7 @@ export default function SubscribeModal({
           variantLabel: variant.label,
           quantity,
           durationMonths,
+          isPrepaidSubscription: payUpfront,
           customer: {
             ...form,
             address: `${form.address}, ${form.city}, ${form.state}`,
@@ -91,13 +94,18 @@ export default function SubscribeModal({
 
       const data = await res.json();
       const cfMode = data.environment || "sandbox";
-      if (!res.ok) throw new Error(data.error || "Failed to create subscription");
+      if (!res.ok) throw new Error(data.error || `Failed to create ${payUpfront ? "order" : "subscription"}`);
 
       saveCheckoutInfo(form);
 
       const { load } = await import("@cashfreepayments/cashfree-js");
       const cashfree = await load({ mode: cfMode });
-      cashfree.subscriptionsCheckout({ subsSessionId: data.subscriptionSessionId, redirectTarget: "_self" });
+      
+      if (payUpfront) {
+        cashfree.checkout({ paymentSessionId: data.paymentSessionId, redirectTarget: "_self" });
+      } else {
+        cashfree.subscriptionsCheckout({ subsSessionId: data.subscriptionSessionId, redirectTarget: "_self" });
+      }
     } catch (err) {
       console.error(err);
       setErrorMsg(err instanceof Error ? err.message : "Something went wrong. Please try again.");
@@ -154,30 +162,67 @@ export default function SubscribeModal({
           {/* Form */}
           {step === "form" && (
             <form id="subscribe-form" onSubmit={handleSubmit} className="px-6 pt-2 pb-4 flex flex-col gap-4">
+              
+              {/* Pay Upfront Switch */}
+              <div className="flex items-center justify-between bg-amber-50 rounded-xl p-4 border border-amber-100">
+                <div>
+                  <h3 className="font-bold text-amber-900 text-sm">Pay Upfront & Save 5%</h3>
+                  <p className="text-xs text-amber-700 mt-0.5">Pay all at once for your entire subscription.</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" className="sr-only peer" checked={payUpfront} onChange={(e) => {
+                    setPayUpfront(e.target.checked);
+                    if (e.target.checked && durationMonths > 12) setDurationMonths(12);
+                  }} />
+                  <div className="w-11 h-6 bg-amber-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                </label>
+              </div>
+
               {/* Duration Picker */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1.5">Subscription Duration</label>
                 <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
                   <div className="flex justify-between items-end mb-3">
                     <span className="text-2xl font-black text-gray-900">{durationMonths} Months</span>
-                    <span className="text-sm font-bold text-gray-500">₹{monthlyTotal * durationMonths} total commitment</span>
+                    <span className="text-sm font-bold text-gray-500">
+                      {payUpfront ? (
+                        <>
+                          <span className="line-through text-gray-400 font-normal mr-1.5">₹{monthlyTotal * durationMonths}</span>
+                          <span className="text-amber-600">₹{Math.round(monthlyTotal * durationMonths * 0.95)} total</span>
+                        </>
+                      ) : (
+                        `₹${monthlyTotal * durationMonths} total commitment`
+                      )}
+                    </span>
                   </div>
                   <input
                     type="range"
                     min="2"
-                    max="24"
+                    max={payUpfront ? "12" : "24"}
                     value={durationMonths}
                     onChange={(e) => setDurationMonths(Number(e.target.value))}
                     className={`w-full h-2 rounded-lg appearance-none cursor-pointer ${isCoffee ? "accent-stone-900 bg-stone-200" : "accent-amber-500 bg-amber-200"}`}
                   />
                   <div className="flex justify-between text-xs text-gray-400 font-bold mt-2 px-1">
                     <span>2m</span>
-                    <span>12m</span>
-                    <span>24m</span>
+                    {payUpfront ? (
+                      <>
+                        <span>6m</span>
+                        <span>12m</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>12m</span>
+                        <span>24m</span>
+                      </>
+                    )}
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
-                  You will be charged ₹{monthlyTotal} monthly for {durationMonths} months. Auto-cancels afterwards.
+                  {payUpfront 
+                    ? `You will be charged ₹${Math.round(monthlyTotal * durationMonths * 0.95)} once today. Deliveries will arrive every month for ${durationMonths} months.`
+                    : `You will be charged ₹${monthlyTotal} monthly for ${durationMonths} months. Auto-cancels afterwards.`
+                  }
                 </p>
               </div>
 
@@ -270,7 +315,7 @@ export default function SubscribeModal({
         {step === "form" && (
           <div className="shrink-0 px-6 py-4 border-t border-gray-100 bg-white">
             <button type="submit" form="subscribe-form" className={btnClass}>
-              Authorize ₹{monthlyTotal}/month
+              {payUpfront ? `Pay ₹${Math.round(monthlyTotal * durationMonths * 0.95)} Upfront` : `Authorize ₹${monthlyTotal}/month`}
             </button>
             <p className="text-center text-xs text-gray-400 mt-2">
               Secured by Cashfree · Cancel any time

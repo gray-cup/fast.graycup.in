@@ -41,6 +41,8 @@ interface OrderPayload {
     address: string;
     pincode: string;
   };
+  isPrepaidSubscription?: boolean;
+  durationMonths?: number;
 }
 
 function computeOrderWeights(body: OrderPayload): {
@@ -124,9 +126,11 @@ export async function POST(req: NextRequest) {
     const body: OrderPayload = await req.json();
     const { customer, items } = body;
     const productId = body.productId ?? items?.[0]?.productId ?? "";
-    const productName = items
+    const product = products.find((p) => p.id === productId);
+    let productName = items
       ? items.map((i) => `${i.productName} ${i.variantLabel} ×${i.quantity}`).join(", ")
-      : `${body.productName} ${body.variantLabel} ×${body.quantity}`;
+      : `${product?.name || body.productName || "Product"} ${body.variantLabel} ×${body.quantity}`;
+
     const variantLabel = body.variantLabel ?? items?.map((i) => i.variantLabel).join(", ") ?? "";
     const quantity = body.quantity ?? items?.reduce((s, i) => s + i.quantity, 0) ?? 1;
     const batchId = body.batchId ?? items?.[0]?.batchId ?? null;
@@ -135,6 +139,16 @@ export async function POST(req: NextRequest) {
     const weights = computeOrderWeights(body);
     if (!breakdown || !weights) {
       return NextResponse.json({ error: "Invalid product or variant" }, { status: 400 });
+    }
+
+    if (body.isPrepaidSubscription && body.durationMonths) {
+      breakdown.subtotal *= body.durationMonths;
+      breakdown.delivery *= body.durationMonths; // Though usually 0 for big orders
+      const prepaidDiscount = Math.round(breakdown.subtotal * 0.05);
+      breakdown.subtotal -= prepaidDiscount;
+      breakdown.total = breakdown.subtotal + breakdown.delivery;
+      weights.totalWeightGrams *= body.durationMonths;
+      productName += ` (Prepaid ${body.durationMonths} Months)`;
     }
 
     let discountAmount = 0;
