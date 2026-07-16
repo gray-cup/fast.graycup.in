@@ -108,7 +108,7 @@ export const products: Product[] = [
     image_url: "/koraput.webp",
     origin: "Koraput, Odisha, India",
     variants: [
-      { label: "Medium Dark Roast (250gm)", weightGrams: 250, price: 510 },
+      { label: "Medium Dark Roast (250gm)", weightGrams: 250, price: 510, deliveryCharge: 30 },
     ],
     grindOptions: COFFEE_GRIND_OPTIONS,
   },
@@ -123,7 +123,7 @@ export const products: Product[] = [
     image_url: "/koraput.webp",
     origin: "Koraput, Odisha, India",
     variants: [
-      { label: "Medium Dark Roast (250gm)", weightGrams: 250, price: 750 },
+      { label: "Medium Dark Roast (250gm)", weightGrams: 250, price: 750, deliveryCharge: 30 },
     ],
     grindOptions: COFFEE_GRIND_OPTIONS,
   },
@@ -138,7 +138,7 @@ export const products: Product[] = [
     image_url: "/koraput.webp",
     origin: "Koraput, Odisha, India",
     variants: [
-      { label: "Medium Dark Roast (250gm)", weightGrams: 250, price: 650 },
+      { label: "Medium Dark Roast (250gm)", weightGrams: 250, price: 650, deliveryCharge: 30 },
     ],
     grindOptions: COFFEE_GRIND_OPTIONS,
   },
