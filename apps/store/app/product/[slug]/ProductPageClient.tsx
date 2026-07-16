@@ -159,8 +159,7 @@ export default function ProductPageClient({ slug }: { slug: string }) {
 
   const isCoffee = product.category === "Coffee";
   const variant = product.variants[selectedVariant];
-  const allowsQuantity = variant.label === "2kg (4 Packs)";
-  const effectiveQty = allowsQuantity ? quantity : 1;
+  const effectiveQty = quantity;
   const total = variant.price * effectiveQty;
   const gst = gstAmount(total);
   const related = products.filter((p) => p.id !== product.id && p.category === product.category).slice(0, 3);
@@ -207,16 +206,14 @@ export default function ProductPageClient({ slug }: { slug: string }) {
               </div>
             )}
 
-            {allowsQuantity && (
-              <div className="mb-8">
-                <p className="text-sm font-bold text-gray-700 mb-3 uppercase tracking-widest">Quantity</p>
-                <div className="inline-flex items-center border-2 border-gray-200 rounded-xl overflow-hidden">
-                  <button onClick={() => setQuantity((q) => Math.max(1, q - 1))} className="w-12 h-12 flex items-center justify-center text-xl font-bold text-gray-700 hover:bg-gray-100 transition-colors">−</button>
-                  <span className="w-14 h-12 flex items-center justify-center text-xl font-black text-gray-900">{quantity}</span>
-                  <button onClick={() => setQuantity((q) => Math.min(10, q + 1))} className="w-12 h-12 flex items-center justify-center text-xl font-bold text-gray-700 hover:bg-gray-100 transition-colors">+</button>
-                </div>
+            <div className="mb-8">
+              <p className="text-sm font-bold text-gray-700 mb-3 uppercase tracking-widest">Quantity</p>
+              <div className="inline-flex items-center border-2 border-gray-200 rounded-xl overflow-hidden">
+                <button onClick={() => setQuantity((q) => Math.max(1, q - 1))} className="w-12 h-12 flex items-center justify-center text-xl font-bold text-gray-700 hover:bg-gray-100 transition-colors">−</button>
+                <span className="w-14 h-12 flex items-center justify-center text-xl font-black text-gray-900">{quantity}</span>
+                <button onClick={() => setQuantity((q) => Math.min(10, q + 1))} className="w-12 h-12 flex items-center justify-center text-xl font-bold text-gray-700 hover:bg-gray-100 transition-colors">+</button>
               </div>
-            )}
+            </div>
 
             <div className="border-t border-gray-100 pt-6">
               {product.outOfStock ? (

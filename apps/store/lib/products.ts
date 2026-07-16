@@ -103,7 +103,7 @@ export const products: Product[] = [
     name: "Koraput, Odisha Washed Coffee",
     tagline: "Single-origin, washed process — great for cold brew",
     description:
-      "Single-origin washed-process coffee beans from Koraput, Odisha. Clean, bright cup with well-defined acidity. Perfect for cold brew.",
+      "Single-origin washed-process coffee beans from Koraput, Odisha, available as whole beans or ground coffee. Clean, bright cup with well-defined acidity. Perfect for cold brew.",
     category: "Coffee",
     image_url: "/koraput.webp",
     origin: "Koraput, Odisha, India",
@@ -118,7 +118,7 @@ export const products: Product[] = [
     name: "Koraput, Odisha Natural Coffee",
     tagline: "Single-origin, natural process — great for cold brew",
     description:
-      "Single-origin natural-process (sun-dried cherry) coffee beans from Koraput, Odisha. Full-bodied with fruity, wine-like notes. Perfect for cold brew.",
+      "Single-origin natural-process (sun-dried cherry) coffee beans from Koraput, Odisha, available as whole beans or ground coffee. Full-bodied with fruity, wine-like notes. Perfect for cold brew.",
     category: "Coffee",
     image_url: "/koraput.webp",
     origin: "Koraput, Odisha, India",
@@ -133,7 +133,7 @@ export const products: Product[] = [
     name: "Koraput, Odisha HSD Coffee",
     tagline: "Single-origin, HSD process — great for cold brew",
     description:
-      "Single-origin HSD-process coffee beans from Koraput, Odisha. Balanced sweetness with a smooth, rounded body. Perfect for cold brew.",
+      "Single-origin HSD-process coffee beans from Koraput, Odisha, available as whole beans or ground coffee. Balanced sweetness with a smooth, rounded body. Perfect for cold brew.",
     category: "Coffee",
     image_url: "/koraput.webp",
     origin: "Koraput, Odisha, India",
