@@ -75,7 +75,10 @@ export default function CartDrawer({ onClose }: { onClose: () => void }) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-sm text-gray-900 leading-snug truncate">{item.product.name}</p>
-                    <p className="text-xs text-gray-500 mb-2">{variant.label} · ₹{variant.price} each</p>
+                    <p className="text-xs text-gray-500 mb-2">
+                      {variant.label} · ₹{variant.price} each
+                      {item.grindSize && <> · {item.grindSize}</>}
+                    </p>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => updateQty(item.product.id, item.variantIndex, item.quantity - 1)}

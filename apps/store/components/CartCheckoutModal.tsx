@@ -105,7 +105,7 @@ export default function CartCheckoutModal({ onClose }: { onClose: () => void }) 
     try {
       const orderItems = items.map((i) => ({
         productId: i.product.id,
-        productName: i.product.name,
+        productName: i.grindSize ? `${i.product.name} (Grind: ${i.grindSize})` : i.product.name,
         variantLabel: i.product.variants[i.variantIndex].label,
         weightGrams: i.product.variants[i.variantIndex].weightGrams,
         quantity: i.quantity,
@@ -178,7 +178,7 @@ export default function CartCheckoutModal({ onClose }: { onClose: () => void }) 
               const v = item.product.variants[item.variantIndex];
               return (
                 <div key={`${item.product.id}-${item.variantIndex}`} className="flex justify-between text-sm">
-                  <span className="text-gray-600">{item.product.name} {v.label} ×{item.quantity}</span>
+                  <span className="text-gray-600">{item.product.name} {v.label}{item.grindSize ? ` (${item.grindSize})` : ""} ×{item.quantity}</span>
                   <span className="font-bold text-gray-900">₹{v.price * item.quantity}</span>
                 </div>
               );

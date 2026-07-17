@@ -248,7 +248,7 @@ export default function ProductPageClient({ slug }: { slug: string }) {
                   </button>
                   <button
                     onClick={() => {
-                      addToCart(product, selectedVariant, effectiveQty);
+                      addToCart(product, selectedVariant, effectiveQty, selectedGrind || undefined);
                       setAdded(true);
                       setTimeout(() => setAdded(false), 1500);
                     }}
