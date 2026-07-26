@@ -67,7 +67,7 @@ export const products: Product[] = [
   {
     id: "ctc-blend-500",
     slug: "ctc-blend",
-    name: "CTC + Orthodox Blend",
+    name: "CTC + Orthodox Chai Blend",
     tagline: "500gm Pack",
     description:
       "500gm of Assam & Dooars CTC + Orthodox blend, Grade includes BOPSM, BP, OF, DJ and GFOP from Dooars and Assam with no Artificial Additives.",
