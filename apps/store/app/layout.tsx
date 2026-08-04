@@ -47,6 +47,23 @@ export default function RootLayout({
             }),
           }}
         />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "@id": "https://graycup.in/#organization",
+              name: "Gray Cup",
+              url: "https://graycup.in",
+              logo: "https://graycup.in/logo.png",
+              sameAs: [
+                "https://www.instagram.com/thegraycup",
+                "https://www.linkedin.com/company/gray-cup",
+              ],
+            }),
+          }}
+        />
         <CartProvider>
           <Navbar />
           <main className="flex-1">{children}</main>
