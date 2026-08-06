@@ -14,6 +14,7 @@ import {
   Repeat,
   ExternalLink,
   Percent,
+  DatabaseBackup,
   type LucideIcon,
 } from "lucide-react";
 
@@ -28,6 +29,7 @@ const navItems: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/label-merge",    label: "Label Merge",   icon: Tag             },
   { href: "/order-map",      label: "Order Map",     icon: Map             },
   { href: "/state-orders",   label: "State Orders",  icon: BarChart2       },
+  { href: "/backup",         label: "Backup",        icon: DatabaseBackup  },
 ];
 
 export default function Sidebar() {
