@@ -43,7 +43,7 @@ export default function SubscribeModal({
     ...loadSavedCheckoutInfo(),
   }));
   const [quantity, setQuantity] = useState(initialQuantity);
-  const [durationMonths, setDurationMonths] = useState(6);
+  const [prepayDurationMonths, setPrepayDurationMonths] = useState(6);
   const [payUpfront, setPayUpfront] = useState(false);
   const [billingIntervalMonths, setBillingIntervalMonths] = useState<1 | 2>(1);
 
@@ -52,7 +52,8 @@ export default function SubscribeModal({
   const variant = product.variants[selectedVariantIndex];
   const monthlyTotal = variant.price * quantity;
   const cadenceLabel = billingIntervalMonths === 2 ? "Every 2 Months" : "Monthly";
-  const cycles = Math.max(1, Math.round(durationMonths / billingIntervalMonths));
+  // 120 months = "Ongoing" server-side; runs until the customer cancels.
+  const durationMonths = payUpfront ? prepayDurationMonths : 120;
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -177,7 +178,6 @@ export default function SubscribeModal({
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" className="sr-only peer" checked={payUpfront} onChange={(e) => {
                     setPayUpfront(e.target.checked);
-                    if (e.target.checked && durationMonths > 12) setDurationMonths(12);
                     if (e.target.checked) setBillingIntervalMonths(1);
                   }} />
                   <div className="w-11 h-6 bg-amber-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
@@ -218,57 +218,42 @@ export default function SubscribeModal({
                     className="w-11 h-11 flex items-center justify-center text-xl font-bold text-gray-700 hover:bg-gray-100 transition-colors">+</button>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
-                  You&apos;ll receive {quantity} × {variant.label} {!payUpfront && billingIntervalMonths === 2 ? "every 2 months" : "every month"}.
+                  You&apos;ll receive {quantity} × {variant.label} {!payUpfront && billingIntervalMonths === 2 ? "every 2 months" : "every month"}
+                  {!payUpfront && ", until you cancel"}.
                 </p>
               </div>
 
-              {/* Duration Picker */}
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1.5">Subscription Duration</label>
-                <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-                  <div className="flex justify-between items-end mb-3">
-                    <span className="text-2xl font-black text-gray-900">{durationMonths} Months</span>
-                    <span className="text-sm font-bold text-gray-500">
-                      {payUpfront ? (
-                        <>
-                          <span className="line-through text-gray-400 font-normal mr-1.5">₹{monthlyTotal * durationMonths}</span>
-                          <span className="text-amber-600">₹{Math.round(monthlyTotal * durationMonths * 0.95)} total</span>
-                        </>
-                      ) : (
-                        `₹${monthlyTotal * cycles} total commitment`
-                      )}
-                    </span>
+              {/* Prepay Duration — only relevant when paying upfront for a fixed number of months */}
+              {payUpfront && (
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1.5">Prepay Duration</label>
+                  <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                    <div className="flex justify-between items-end mb-3">
+                      <span className="text-2xl font-black text-gray-900">{prepayDurationMonths} Months</span>
+                      <span className="text-sm font-bold text-gray-500">
+                        <span className="line-through text-gray-400 font-normal mr-1.5">₹{monthlyTotal * prepayDurationMonths}</span>
+                        <span className="text-amber-600">₹{Math.round(monthlyTotal * prepayDurationMonths * 0.95)} total</span>
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="2"
+                      max="12"
+                      value={prepayDurationMonths}
+                      onChange={(e) => setPrepayDurationMonths(Number(e.target.value))}
+                      className={`w-full h-2 rounded-lg appearance-none cursor-pointer ${isCoffee ? "accent-stone-900 bg-stone-200" : "accent-amber-500 bg-amber-200"}`}
+                    />
+                    <div className="flex justify-between text-xs text-gray-400 font-bold mt-2 px-1">
+                      <span>2m</span>
+                      <span>6m</span>
+                      <span>12m</span>
+                    </div>
                   </div>
-                  <input
-                    type="range"
-                    min="2"
-                    max={payUpfront ? "12" : "24"}
-                    value={durationMonths}
-                    onChange={(e) => setDurationMonths(Number(e.target.value))}
-                    className={`w-full h-2 rounded-lg appearance-none cursor-pointer ${isCoffee ? "accent-stone-900 bg-stone-200" : "accent-amber-500 bg-amber-200"}`}
-                  />
-                  <div className="flex justify-between text-xs text-gray-400 font-bold mt-2 px-1">
-                    <span>2m</span>
-                    {payUpfront ? (
-                      <>
-                        <span>6m</span>
-                        <span>12m</span>
-                      </>
-                    ) : (
-                      <>
-                        <span>12m</span>
-                        <span>24m</span>
-                      </>
-                    )}
-                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    You will be charged ₹{Math.round(monthlyTotal * prepayDurationMonths * 0.95)} once today. Deliveries will arrive every month for {prepayDurationMonths} months.
+                  </p>
                 </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  {payUpfront
-                    ? `You will be charged ₹${Math.round(monthlyTotal * durationMonths * 0.95)} once today. Deliveries will arrive every month for ${durationMonths} months.`
-                    : `You will be charged ₹${monthlyTotal} every ${billingIntervalMonths === 2 ? "2 months" : "month"} for ${durationMonths} months (${cycles} charge${cycles === 1 ? "" : "s"}). Auto-cancels afterwards.`
-                  }
-                </p>
-              </div>
+              )}
 
               {/* Row 1: Name + Phone */}
               <div className="grid grid-cols-2 gap-3 mt-1">
