@@ -169,6 +169,9 @@ export function ensureSubscriptionsTable(): Promise<void> {
       await db.execute(
         sql`ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS billing_interval_months INTEGER NOT NULL DEFAULT 1`
       );
+      await db.execute(
+        sql`ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS duration_months INTEGER NOT NULL DEFAULT 120`
+      );
     })();
   }
   return ensureSubscriptionsTablePromise;

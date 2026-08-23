@@ -19,6 +19,8 @@ type Subscription = {
   customerPincode: string;
   status: string;
   nextChargeDate: string | null;
+  billingIntervalMonths: number;
+  durationMonths: number;
   createdAt: string;
   paymentsCount: number;
   totalCollected: number;
@@ -152,6 +154,7 @@ export default function SubscriptionsPage() {
                 <th className="px-4 py-3 font-semibold text-gray-600">Customer</th>
                 <th className="px-4 py-3 font-semibold text-gray-600">Product</th>
                 <th className="px-4 py-3 font-semibold text-gray-600 text-right">Amount</th>
+                <th className="px-4 py-3 font-semibold text-gray-600">Billing</th>
                 <th className="px-4 py-3 font-semibold text-gray-600">Status</th>
                 <th className="px-4 py-3 font-semibold text-gray-600">Next Charge</th>
                 <th className="px-4 py-3 font-semibold text-gray-600 text-right">Payments</th>
@@ -172,7 +175,13 @@ export default function SubscriptionsPage() {
                       <div>{s.productName}</div>
                       <div className="text-xs text-gray-400">{s.variantLabel} ×{s.quantity}</div>
                     </td>
-                    <td className="px-4 py-3 text-right font-bold">₹{s.amount}/mo</td>
+                    <td className="px-4 py-3 text-right font-bold">
+                      ₹{s.amount}{s.billingIntervalMonths === 2 ? " / 2mo" : "/mo"}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-gray-500">
+                      {s.billingIntervalMonths === 2 ? "Every 2 months" : "Monthly"}
+                      <div className="text-gray-400">{s.durationMonths >= 120 ? "Ongoing" : `${s.durationMonths}mo term`}</div>
+                    </td>
                     <td className="px-4 py-3"><StatusBadge status={s.status} /></td>
                     <td className="px-4 py-3 text-xs text-gray-500">
                       {s.nextChargeDate ? new Date(s.nextChargeDate).toLocaleDateString("en-IN") : "—"}
@@ -195,7 +204,7 @@ export default function SubscriptionsPage() {
               })}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="text-center py-12 text-gray-400">No subscriptions found</td>
+                  <td colSpan={9} className="text-center py-12 text-gray-400">No subscriptions found</td>
                 </tr>
               )}
             </tbody>

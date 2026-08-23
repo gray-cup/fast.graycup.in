@@ -95,6 +95,7 @@ export const subscriptions = pgTable("subscriptions", {
   status: text("status").notNull().default("INITIALIZED"),
   nextChargeDate: text("next_charge_date"),
   billingIntervalMonths: integer("billing_interval_months").notNull().default(1),
+  durationMonths: integer("duration_months").notNull().default(120),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

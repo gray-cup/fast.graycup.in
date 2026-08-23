@@ -166,6 +166,7 @@ export async function POST(req: NextRequest) {
       status: cfData.subscription_status || "INITIALIZED",
       nextChargeDate: cfData.next_schedule_date ?? null,
       billingIntervalMonths,
+      durationMonths: duration,
     });
 
     return NextResponse.json({
