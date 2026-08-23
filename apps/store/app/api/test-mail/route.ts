@@ -15,7 +15,10 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error("test-mail:", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Failed to send email" },
+      {
+        error: err instanceof Error ? err.message : "Failed to send email",
+        _debug: { fromEnv: JSON.stringify(process.env.RESEND_FROM_EMAIL ?? null) },
+      },
       { status: 500 }
     );
   }

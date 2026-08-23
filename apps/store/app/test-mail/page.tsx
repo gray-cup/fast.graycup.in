@@ -19,7 +19,10 @@ export default function TestMailPage() {
         body: JSON.stringify({ email }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to send email");
+      if (!res.ok) {
+        const debug = data._debug ? ` (RESEND_FROM_EMAIL = ${data._debug.fromEnv})` : "";
+        throw new Error((data.error || "Failed to send email") + debug);
+      }
       setStatus("ok");
       setMessage(`Sent to ${email}. Check the inbox (and spam folder).`);
     } catch (err) {
