@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 type Subscription = {
   id: number;
@@ -57,6 +57,59 @@ function Toast({ type, msg }: { type: "success" | "error"; msg: string }) {
   );
 }
 
+function CancelDialog({
+  subscriptionRef,
+  busy,
+  onConfirm,
+  onClose,
+}: {
+  subscriptionRef: string;
+  busy: boolean;
+  onConfirm: () => void;
+  onClose: () => void;
+}) {
+  const [text, setText] = useState("");
+  const confirmed = text.trim().toLowerCase() === "cancel";
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] bg-black/40 flex items-center justify-center px-4"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="bg-white w-full max-w-sm rounded-2xl p-6 shadow-2xl">
+        <h3 className="text-lg font-black text-gray-900 mb-2">Cancel subscription?</h3>
+        <p className="text-sm text-gray-500 mb-4">
+          This can&apos;t be undone. Type <span className="font-mono font-bold text-gray-700">cancel</span> below to confirm
+          cancelling <span className="font-mono">{subscriptionRef}</span>.
+        </p>
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          rows={2}
+          autoFocus
+          placeholder="Type cancel to confirm"
+          className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-transparent resize-none"
+        />
+        <div className="flex gap-2 mt-4">
+          <button
+            onClick={onClose}
+            className="flex-1 text-sm font-semibold text-gray-700 border border-gray-300 rounded-xl py-2.5 hover:bg-gray-50"
+          >
+            Don&apos;t Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={!confirmed || busy}
+            className="flex-1 text-sm font-semibold text-white bg-red-600 rounded-xl py-2.5 hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {busy ? "Cancelling…" : "Cancel Subscription"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const FILTERS: { key: Filter; label: string }[] = [
   { key: "all", label: "All" },
   { key: "active", label: "Active" },
@@ -68,8 +121,20 @@ export default function SubscriptionsPage() {
   const [subs, setSubs] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<Filter>("all");
-  const [busyRef, setBusyRef] = useState<string | null>(null);
+  const [busy, setBusy] = useState<{ ref: string; action: "sync" | "cancel" } | null>(null);
   const [toast, setToast] = useState<{ type: "success" | "error"; msg: string } | null>(null);
+  const [menuOpenRef, setMenuOpenRef] = useState<string | null>(null);
+  const [cancelDialogRef, setCancelDialogRef] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!menuOpenRef) return;
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpenRef(null);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [menuOpenRef]);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -87,8 +152,7 @@ export default function SubscriptionsPage() {
   };
 
   const cancelSubscription = async (subscriptionRef: string) => {
-    if (!confirm(`Cancel subscription ${subscriptionRef}? This can't be undone.`)) return;
-    setBusyRef(subscriptionRef);
+    setBusy({ ref: subscriptionRef, action: "cancel" });
     try {
       const res = await fetch(`/api/subscriptions/${subscriptionRef}/cancel`, { method: "POST" });
       const data = await res.json();
@@ -97,11 +161,12 @@ export default function SubscriptionsPage() {
     } catch {
       showToast("error", "Request failed");
     }
-    setBusyRef(null);
+    setBusy(null);
+    setCancelDialogRef(null);
   };
 
   const syncSubscription = async (subscriptionRef: string) => {
-    setBusyRef(subscriptionRef);
+    setBusy({ ref: subscriptionRef, action: "sync" });
     try {
       const res = await fetch(`/api/subscriptions/${subscriptionRef}/sync`, { method: "POST" });
       const data = await res.json();
@@ -111,7 +176,7 @@ export default function SubscriptionsPage() {
     } catch {
       showToast("error", "Request failed");
     }
-    setBusyRef(null);
+    setBusy(null);
   };
 
   const filtered = subs.filter((s) => {
@@ -127,6 +192,14 @@ export default function SubscriptionsPage() {
   return (
     <div className="flex flex-col h-full gap-3">
       {toast && <Toast type={toast.type} msg={toast.msg} />}
+      {cancelDialogRef && (
+        <CancelDialog
+          subscriptionRef={cancelDialogRef}
+          busy={busy?.ref === cancelDialogRef && busy.action === "cancel"}
+          onConfirm={() => cancelSubscription(cancelDialogRef)}
+          onClose={() => setCancelDialogRef(null)}
+        />
+      )}
 
       <div className="shrink-0 flex flex-wrap items-center gap-3">
         <div className="flex bg-gray-100 rounded-xl p-1 gap-1">
@@ -207,21 +280,34 @@ export default function SubscriptionsPage() {
                         {!cancelled && (
                           <button
                             onClick={() => syncSubscription(s.subscriptionRef)}
-                            disabled={busyRef === s.subscriptionRef}
+                            disabled={busy?.ref === s.subscriptionRef}
                             className="text-xs font-semibold text-gray-600 border border-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-100 disabled:opacity-40 transition-colors"
                             title="Pull the live status from Cashfree"
                           >
-                            {busyRef === s.subscriptionRef ? "…" : "Sync"}
+                            {busy?.ref === s.subscriptionRef && busy.action === "sync" ? "Syncing…" : "Sync"}
                           </button>
                         )}
                         {!cancelled && (
-                          <button
-                            onClick={() => cancelSubscription(s.subscriptionRef)}
-                            disabled={busyRef === s.subscriptionRef}
-                            className="text-xs font-semibold text-red-600 border border-red-200 rounded-lg px-3 py-1.5 hover:bg-red-50 disabled:opacity-40 transition-colors"
-                          >
-                            {busyRef === s.subscriptionRef ? "Cancelling…" : "Cancel"}
-                          </button>
+                          <div className="relative">
+                            <button
+                              onClick={() => setMenuOpenRef(menuOpenRef === s.subscriptionRef ? null : s.subscriptionRef)}
+                              disabled={busy?.ref === s.subscriptionRef}
+                              className="text-xs font-semibold text-gray-500 border border-gray-300 rounded-lg w-8 h-8 flex items-center justify-center hover:bg-gray-100 disabled:opacity-40 transition-colors"
+                              aria-label="More actions"
+                            >
+                              ⋮
+                            </button>
+                            {menuOpenRef === s.subscriptionRef && (
+                              <div ref={menuRef} className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg py-1 w-40 z-20">
+                                <button
+                                  onClick={() => { setMenuOpenRef(null); setCancelDialogRef(s.subscriptionRef); }}
+                                  className="w-full text-left text-xs font-semibold text-red-600 px-3 py-2 hover:bg-red-50"
+                                >
+                                  Cancel subscription
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         )}
                       </div>
                     </td>
