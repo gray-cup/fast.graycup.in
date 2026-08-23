@@ -6,6 +6,16 @@ import { products } from "@/lib/products";
 
 const GST_RATE = 0.05;
 
+// Cashfree stores subscription timestamps in IST and schedules the first charge
+// on the nearest feasible date on/after this value (T+1/T+2 for UPI & cards,
+// T+4 for eNACH) — passing "now" gets the customer charged as soon as possible
+// instead of Cashfree's default of waiting one full billing interval.
+function nowIST(): string {
+  const ist = new Date(Date.now() + 5.5 * 60 * 60 * 1000);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${ist.getUTCFullYear()}-${pad(ist.getUTCMonth() + 1)}-${pad(ist.getUTCDate())}T${pad(ist.getUTCHours())}:${pad(ist.getUTCMinutes())}:${pad(ist.getUTCSeconds())}+05:30`;
+}
+
 interface SubscriptionPayload {
   productId: string;
   variantLabel: string;
@@ -130,6 +140,7 @@ export async function POST(req: NextRequest) {
         plan_details: {
           plan_id: planId,
         },
+        subscription_first_charge_time: nowIST(),
         subscription_meta: {
           return_url: `${baseUrl}/subscription-success?ref=${subscriptionRef}`,
         },

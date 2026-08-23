@@ -34,7 +34,11 @@ export async function POST(req: NextRequest) {
     const event = JSON.parse(rawBody);
     const { type, data } = event;
 
-    const subscriptionRef: string | undefined = data?.subscription?.subscription_id;
+    // SUBSCRIPTION_STATUS_CHANGED nests these fields under `subscription_details`;
+    // SUBSCRIPTION_AUTH_STATUS / SUBSCRIPTION_PAYMENT_SUCCESS / SUBSCRIPTION_PAYMENT_FAILED
+    // put them directly on `data` — Cashfree does not use a `data.subscription` object.
+    const subscriptionRef: string | undefined =
+      data?.subscription_details?.subscription_id ?? data?.subscription_id;
     if (!subscriptionRef) {
       console.error("subscription-webhook: missing subscription_id", JSON.stringify(event));
       return NextResponse.json({ ok: true });
@@ -46,17 +50,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true });
     }
     const sub = rows[0];
-    const nextChargeDate: string | null = data?.subscription?.next_schedule_date ?? sub.nextChargeDate;
+    const nextChargeDate: string | null = data?.subscription_details?.next_schedule_date ?? sub.nextChargeDate;
 
     switch (type) {
       case "SUBSCRIPTION_AUTH_STATUS": {
-        const authStatus = data?.authorization?.authorization_status;
-        const newStatus = authStatus === "SUCCESS" ? "ACTIVE" : "AUTH_FAILED";
+        const authSuccess = data?.payment_status === "SUCCESS";
+        const newStatus = authSuccess ? "ACTIVE" : "AUTH_FAILED";
         await db.update(subscriptions)
           .set({ status: newStatus, nextChargeDate })
           .where(eq(subscriptions.subscriptionRef, subscriptionRef));
 
-        if (authStatus === "SUCCESS") {
+        if (authSuccess) {
           try {
             await sendSubscriptionConfirmationEmail({ ...sub, status: newStatus, nextChargeDate });
           } catch (err) {
@@ -67,8 +71,8 @@ export async function POST(req: NextRequest) {
       }
 
       case "SUBSCRIPTION_PAYMENT_SUCCESS": {
-        const paymentAmount = Number(data?.payment?.payment_amount ?? sub.amount);
-        const cfPaymentId = data?.payment?.cf_payment_id ? String(data.payment.cf_payment_id) : null;
+        const paymentAmount = Number(data?.payment_amount ?? sub.amount);
+        const cfPaymentId = data?.cf_payment_id ? String(data.cf_payment_id) : null;
         await db.update(subscriptions)
           .set({ status: "ACTIVE", nextChargeDate })
           .where(eq(subscriptions.subscriptionRef, subscriptionRef));
@@ -93,8 +97,8 @@ export async function POST(req: NextRequest) {
         await ensureSubscriptionPaymentsTable();
         await db.insert(subscriptionPayments).values({
           subscriptionRef,
-          cfPaymentId: data?.payment?.cf_payment_id ? String(data.payment.cf_payment_id) : null,
-          amount: Math.round(Number(data?.payment?.payment_amount ?? sub.amount)),
+          cfPaymentId: data?.cf_payment_id ? String(data.cf_payment_id) : null,
+          amount: Math.round(Number(data?.payment_amount ?? sub.amount)),
           status: "FAILED",
         });
 
@@ -107,7 +111,7 @@ export async function POST(req: NextRequest) {
       }
 
       case "SUBSCRIPTION_STATUS_CHANGED": {
-        const newStatus = data?.subscription?.subscription_status;
+        const newStatus = data?.subscription_details?.subscription_status;
         if (newStatus) {
           await db.update(subscriptions)
             .set({ status: newStatus, nextChargeDate })

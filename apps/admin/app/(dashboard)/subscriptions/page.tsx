@@ -100,6 +100,19 @@ export default function SubscriptionsPage() {
     setBusyRef(null);
   };
 
+  const syncSubscription = async (subscriptionRef: string) => {
+    setBusyRef(subscriptionRef);
+    try {
+      const res = await fetch(`/api/subscriptions/${subscriptionRef}/sync`, { method: "POST" });
+      const data = await res.json();
+      showToast(res.ok ? "success" : "error", res.ok ? `Status: ${data.status}` : data.error);
+      load();
+    } catch {
+      showToast("error", "Request failed");
+    }
+    setBusyRef(null);
+  };
+
   const filtered = subs.filter((s) => {
     if (filter === "active") return s.status === "ACTIVE";
     if (filter === "pending") return ["INITIALIZED", "ON_HOLD", "AUTH_FAILED"].includes(s.status);
@@ -189,15 +202,27 @@ export default function SubscriptionsPage() {
                     <td className="px-4 py-3 text-right text-gray-600">{s.paymentsCount}</td>
                     <td className="px-4 py-3 text-right font-semibold text-gray-900">₹{s.totalCollected.toLocaleString("en-IN")}</td>
                     <td className="px-4 py-3">
-                      {!cancelled && (
-                        <button
-                          onClick={() => cancelSubscription(s.subscriptionRef)}
-                          disabled={busyRef === s.subscriptionRef}
-                          className="text-xs font-semibold text-red-600 hover:text-red-700 disabled:opacity-40"
-                        >
-                          {busyRef === s.subscriptionRef ? "Cancelling…" : "Cancel"}
-                        </button>
-                      )}
+                      <div className="flex items-center gap-3">
+                        {!cancelled && (
+                          <button
+                            onClick={() => syncSubscription(s.subscriptionRef)}
+                            disabled={busyRef === s.subscriptionRef}
+                            className="text-xs font-semibold text-gray-500 hover:text-gray-700 disabled:opacity-40"
+                            title="Pull the live status from Cashfree"
+                          >
+                            {busyRef === s.subscriptionRef ? "…" : "Sync"}
+                          </button>
+                        )}
+                        {!cancelled && (
+                          <button
+                            onClick={() => cancelSubscription(s.subscriptionRef)}
+                            disabled={busyRef === s.subscriptionRef}
+                            className="text-xs font-semibold text-red-600 hover:text-red-700 disabled:opacity-40"
+                          >
+                            {busyRef === s.subscriptionRef ? "Cancelling…" : "Cancel"}
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );
