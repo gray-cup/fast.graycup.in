@@ -27,7 +27,7 @@ type Step = "form" | "loading" | "error";
 export default function SubscribeModal({
   product,
   selectedVariantIndex,
-  quantity,
+  quantity: initialQuantity,
   onClose,
 }: SubscribeModalProps) {
   const [step, setStep] = useState<Step>("form");
@@ -42,6 +42,7 @@ export default function SubscribeModal({
     email: "",
     ...loadSavedCheckoutInfo(),
   }));
+  const [quantity, setQuantity] = useState(initialQuantity);
   const [durationMonths, setDurationMonths] = useState(6);
   const [payUpfront, setPayUpfront] = useState(false);
   const [billingIntervalMonths, setBillingIntervalMonths] = useState<1 | 2>(1);
@@ -205,6 +206,21 @@ export default function SubscribeModal({
                   </div>
                 </div>
               )}
+
+              {/* Quantity */}
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1.5">Quantity</label>
+                <div className="inline-flex items-center border-2 border-gray-200 rounded-xl overflow-hidden">
+                  <button type="button" onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                    className="w-11 h-11 flex items-center justify-center text-xl font-bold text-gray-700 hover:bg-gray-100 transition-colors">−</button>
+                  <span className="w-12 h-11 flex items-center justify-center text-lg font-black text-gray-900">{quantity}</span>
+                  <button type="button" onClick={() => setQuantity((q) => Math.min(10, q + 1))}
+                    className="w-11 h-11 flex items-center justify-center text-xl font-bold text-gray-700 hover:bg-gray-100 transition-colors">+</button>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  You&apos;ll receive {quantity} × {variant.label} {!payUpfront && billingIntervalMonths === 2 ? "every 2 months" : "every month"}.
+                </p>
+              </div>
 
               {/* Duration Picker */}
               <div>
