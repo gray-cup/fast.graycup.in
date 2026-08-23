@@ -177,16 +177,27 @@ export default function ProductPageClient({ slug }: { slug: string }) {
             <p className="text-xl text-gray-500 mb-5 leading-relaxed">{product.tagline}</p>
             <p className="text-base text-gray-600 leading-relaxed mb-8">{product.description}</p>
 
-            <div className="mb-6">
-              <p className="text-sm font-bold text-gray-700 mb-3 uppercase tracking-widest">Pack Size</p>
-              <div className="flex flex-wrap gap-3">
-                {product.variants.map((v, i) => (
-                  <button key={v.label} onClick={() => { setSelectedVariant(i); setQuantity(1); }}
-                    className={`px-5 py-3 rounded-xl font-bold text-sm border-2 transition-all duration-150 ${selectedVariant === i ? isCoffee ? "border-stone-900 bg-stone-50 text-stone-900" : "border-amber-400 bg-amber-50 text-gray-900" : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"}`}>
-                    {v.label}
-                    <span className={`block text-xs font-semibold mt-0.5 ${isCoffee ? "text-stone-600" : "text-amber-600"}`}>₹{v.price}</span>
-                  </button>
-                ))}
+            <div className="mb-6 flex flex-wrap items-start gap-x-8 gap-y-6">
+              <div>
+                <p className="text-sm font-bold text-gray-700 mb-3 uppercase tracking-widest">Pack Size</p>
+                <div className="flex flex-wrap gap-3">
+                  {product.variants.map((v, i) => (
+                    <button key={v.label} onClick={() => { setSelectedVariant(i); setQuantity(1); }}
+                      className={`px-5 py-3 rounded-xl font-bold text-sm border-2 transition-all duration-150 ${selectedVariant === i ? isCoffee ? "border-stone-900 bg-stone-50 text-stone-900" : "border-amber-400 bg-amber-50 text-gray-900" : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"}`}>
+                      {v.label}
+                      <span className={`block text-xs font-semibold mt-0.5 ${isCoffee ? "text-stone-600" : "text-amber-600"}`}>₹{v.price}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm font-bold text-gray-700 mb-3 uppercase tracking-widest">Quantity</p>
+                <div className="inline-flex items-center border-2 border-gray-200 rounded-xl overflow-hidden">
+                  <button onClick={() => setQuantity((q) => Math.max(1, q - 1))} className="w-12 h-12 flex items-center justify-center text-xl font-bold text-gray-700 hover:bg-gray-100 transition-colors">−</button>
+                  <span className="w-14 h-12 flex items-center justify-center text-xl font-black text-gray-900">{quantity}</span>
+                  <button onClick={() => setQuantity((q) => Math.min(10, q + 1))} className="w-12 h-12 flex items-center justify-center text-xl font-bold text-gray-700 hover:bg-gray-100 transition-colors">+</button>
+                </div>
               </div>
             </div>
 
@@ -205,15 +216,6 @@ export default function ProductPageClient({ slug }: { slug: string }) {
                 <p className="text-xs text-gray-400 mt-2">Default: French Press / Cold Brew</p>
               </div>
             )}
-
-            <div className="mb-8">
-              <p className="text-sm font-bold text-gray-700 mb-3 uppercase tracking-widest">Quantity</p>
-              <div className="inline-flex items-center border-2 border-gray-200 rounded-xl overflow-hidden">
-                <button onClick={() => setQuantity((q) => Math.max(1, q - 1))} className="w-12 h-12 flex items-center justify-center text-xl font-bold text-gray-700 hover:bg-gray-100 transition-colors">−</button>
-                <span className="w-14 h-12 flex items-center justify-center text-xl font-black text-gray-900">{quantity}</span>
-                <button onClick={() => setQuantity((q) => Math.min(10, q + 1))} className="w-12 h-12 flex items-center justify-center text-xl font-bold text-gray-700 hover:bg-gray-100 transition-colors">+</button>
-              </div>
-            </div>
 
             <div className="border-t border-gray-100 pt-6">
               {product.outOfStock ? (
@@ -242,20 +244,22 @@ export default function ProductPageClient({ slug }: { slug: string }) {
                     </div>
                     <p className="text-xs text-gray-400">Incl. 5% GST (₹{gst})</p>
                   </div>
-                  <button onClick={() => setShowCheckout(true)}
-                    className={`w-full font-black text-xl py-5 rounded-2xl transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 mb-3 ${isCoffee ? "bg-stone-900 hover:bg-stone-800 text-white" : "bg-amber-500 hover:bg-amber-600 text-white"}`}>
-                    Buy Now
-                  </button>
-                  <button
-                    onClick={() => {
-                      addToCart(product, selectedVariant, effectiveQty, selectedGrind || undefined);
-                      setAdded(true);
-                      setTimeout(() => setAdded(false), 1500);
-                    }}
-                    className="w-full font-black text-lg py-4 rounded-2xl border-2 border-gray-200 text-gray-900 hover:border-gray-300 transition-all duration-200 mb-3"
-                  >
-                    {added ? "Added ✓" : "Add to Cart"}
-                  </button>
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    <button onClick={() => setShowCheckout(true)}
+                      className={`w-full font-black text-lg py-5 rounded-2xl transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 ${isCoffee ? "bg-stone-900 hover:bg-stone-800 text-white" : "bg-amber-500 hover:bg-amber-600 text-white"}`}>
+                      Buy Now
+                    </button>
+                    <button
+                      onClick={() => {
+                        addToCart(product, selectedVariant, effectiveQty, selectedGrind || undefined);
+                        setAdded(true);
+                        setTimeout(() => setAdded(false), 1500);
+                      }}
+                      className="w-full font-black text-lg py-5 rounded-2xl border-2 border-gray-200 text-gray-900 hover:border-gray-300 transition-all duration-200"
+                    >
+                      {added ? "Added ✓" : "Add to Cart"}
+                    </button>
+                  </div>
                   <button
                     onClick={() => setShowSubscribe(true)}
                     className="w-full font-black text-lg py-4 rounded-2xl border-2 border-dashed border-amber-400 text-amber-700 hover:bg-amber-50 transition-all duration-200"
