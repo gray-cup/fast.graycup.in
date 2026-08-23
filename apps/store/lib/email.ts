@@ -121,10 +121,12 @@ function formatDate(iso: string | null): string {
 export async function sendSubscriptionConfirmationEmail(sub: Subscription): Promise<void> {
   if (!resend || !sub.customerEmail) return;
 
+  const cadence = sub.billingIntervalMonths === 2 ? "every 2 months" : "every month";
+
   const body = `
     <h1 style="margin:0 0 8px;font-size:22px;font-weight:900;color:#111827;">Subscription activated!</h1>
     <p style="margin:0 0 24px;font-size:15px;color:#6b7280;line-height:1.6;">
-      Hi ${sub.customerName}, your monthly subscription is now active. You'll be charged automatically every month.
+      Hi ${sub.customerName}, your subscription is now active. You'll be charged automatically ${cadence}.
     </p>
 
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:16px;padding:20px;margin-bottom:24px;">
@@ -141,10 +143,10 @@ export async function sendSubscriptionConfirmationEmail(sub: Subscription): Prom
         <td style="font-size:14px;color:#111827;padding-bottom:16px;line-height:1.5;">${sub.productName} &mdash; ${sub.variantLabel} &times; ${sub.quantity}</td>
       </tr>
       <tr>
-        <td style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;padding-bottom:6px;">Monthly Amount</td>
+        <td style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;padding-bottom:6px;">Amount Per Charge</td>
       </tr>
       <tr>
-        <td style="font-size:16px;font-weight:900;color:#111827;padding-bottom:16px;">₹${sub.amount} / month</td>
+        <td style="font-size:16px;font-weight:900;color:#111827;padding-bottom:16px;">₹${sub.amount} ${cadence}</td>
       </tr>
       <tr>
         <td style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;padding-bottom:6px;">Next Charge Date</td>
@@ -186,7 +188,7 @@ export async function sendSubscriptionChargeEmail(
   const body = `
     <h1 style="margin:0 0 8px;font-size:22px;font-weight:900;color:#111827;">Payment received</h1>
     <p style="margin:0 0 24px;font-size:15px;color:#6b7280;line-height:1.6;">
-      Hi ${sub.customerName}, your monthly payment for ${sub.productName} was processed successfully.
+      Hi ${sub.customerName}, your payment for ${sub.productName} was processed successfully.
     </p>
 
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:16px;padding:20px;margin-bottom:24px;">
@@ -241,7 +243,7 @@ export async function sendSubscriptionPaymentFailedEmail(sub: Subscription): Pro
   const body = `
     <h1 style="margin:0 0 8px;font-size:22px;font-weight:900;color:#111827;">Payment failed</h1>
     <p style="margin:0 0 24px;font-size:15px;color:#6b7280;line-height:1.6;">
-      Hi ${sub.customerName}, we couldn't process this month's payment of ₹${sub.amount} for your ${sub.productName} subscription.
+      Hi ${sub.customerName}, we couldn't process the payment of ₹${sub.amount} for your ${sub.productName} subscription.
       Please make sure your payment method has sufficient balance — we'll retry automatically.
     </p>
 
@@ -286,4 +288,24 @@ export async function sendMagicLinkEmail(email: string, magicLink: string): Prom
     subject: "Sign in to Gray Cup",
     html: emailShell(body),
   });
+}
+
+export async function sendTestEmail(to: string): Promise<void> {
+  if (!resend) throw new Error("RESEND_API_KEY is not configured");
+
+  const body = `
+    <h1 style="margin:0 0 8px;font-size:22px;font-weight:900;color:#111827;">Resend is working!</h1>
+    <p style="margin:0;font-size:15px;color:#6b7280;line-height:1.6;">
+      This is a test email from fast.graycup.in sent at ${new Date().toISOString()}.
+    </p>
+  `;
+
+  const { error } = await resend.emails.send({
+    from: FROM_EMAIL,
+    to: [to],
+    subject: "Gray Cup — Test Email",
+    html: emailShell(body),
+  });
+
+  if (error) throw new Error(error.message);
 }

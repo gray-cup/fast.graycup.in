@@ -94,6 +94,7 @@ export const subscriptions = pgTable("subscriptions", {
   customerPincode: text("customer_pincode").notNull(),
   status: text("status").notNull().default("INITIALIZED"),
   nextChargeDate: text("next_charge_date"),
+  billingIntervalMonths: integer("billing_interval_months").notNull().default(1),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

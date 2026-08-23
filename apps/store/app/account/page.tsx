@@ -13,6 +13,7 @@ interface Subscription {
   amount: number;
   status: string;
   nextChargeDate: string | null;
+  billingIntervalMonths: number;
   createdAt: string;
 }
 
@@ -132,7 +133,9 @@ export default function AccountPage() {
                   </div>
                   <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
                     <div>
-                      <p className="text-lg font-black text-gray-900">₹{s.amount}/mo</p>
+                      <p className="text-lg font-black text-gray-900">
+                        ₹{s.amount}{s.billingIntervalMonths === 2 ? " / 2mo" : "/mo"}
+                      </p>
                       {!cancelled && <p className="text-xs text-gray-400">Next charge: {formatDate(s.nextChargeDate)}</p>}
                     </div>
                     {!cancelled && (

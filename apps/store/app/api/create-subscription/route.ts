@@ -18,6 +18,7 @@ interface SubscriptionPayload {
     pincode: string;
   };
   durationMonths?: number;
+  billingIntervalMonths?: number;
 }
 
 export async function POST(req: NextRequest) {
@@ -69,16 +70,19 @@ export async function POST(req: NextRequest) {
     };
 
     // Plans must exist before a subscription can reference them. Reuse one plan
-    // per product+variant+price+duration combo — create it if missing, ignore if it already exists.
+    // per product+variant+price+duration+interval combo — create it if missing, ignore if it already exists.
     const duration = body.durationMonths || 120; // Default 120 months (Ongoing)
+    const billingIntervalMonths = body.billingIntervalMonths === 2 ? 2 : 1;
     const durationLabel = duration === 120 ? "ongoing" : `${duration}m`;
+    const cycles = Math.max(1, Math.round(duration / billingIntervalMonths));
 
-    const planId = `plan-${product.id}-${variant.label}-${amount}-${durationLabel}`
+    const planId = `plan-${product.id}-${variant.label}-${amount}-${durationLabel}-i${billingIntervalMonths}`
       .toLowerCase()
       .replace(/[^a-z0-9.\-_]/g, "-")
       .slice(0, 40);
 
-    const planName = `${product.name} Monthly (${duration === 120 ? 'Ongoing' : `${duration} Months`})`
+    const cadenceLabel = billingIntervalMonths === 2 ? "Bimonthly" : "Monthly";
+    const planName = `${product.name} ${cadenceLabel} (${duration === 120 ? 'Ongoing' : `${duration} Months`})`
       .replace(/[^a-zA-Z0-9 _-]/g, "")
       .replace(/\s+/g, " ")
       .trim()
@@ -94,8 +98,8 @@ export async function POST(req: NextRequest) {
         plan_currency: "INR",
         plan_recurring_amount: amount,
         plan_max_amount: amount,
-        plan_max_cycles: duration,
-        plan_intervals: 1,
+        plan_max_cycles: cycles,
+        plan_intervals: billingIntervalMonths,
         plan_interval_type: "MONTH",
       }),
     });
@@ -161,6 +165,7 @@ export async function POST(req: NextRequest) {
       customerPincode: customer.pincode,
       status: cfData.subscription_status || "INITIALIZED",
       nextChargeDate: cfData.next_schedule_date ?? null,
+      billingIntervalMonths,
     });
 
     return NextResponse.json({

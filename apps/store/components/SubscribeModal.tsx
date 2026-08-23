@@ -44,11 +44,14 @@ export default function SubscribeModal({
   }));
   const [durationMonths, setDurationMonths] = useState(6);
   const [payUpfront, setPayUpfront] = useState(false);
+  const [billingIntervalMonths, setBillingIntervalMonths] = useState<1 | 2>(1);
 
   const overlayRef = useRef<HTMLDivElement>(null);
   const isCoffee = product.category === "Coffee";
   const variant = product.variants[selectedVariantIndex];
   const monthlyTotal = variant.price * quantity;
+  const cadenceLabel = billingIntervalMonths === 2 ? "Every 2 Months" : "Monthly";
+  const cycles = Math.max(1, Math.round(durationMonths / billingIntervalMonths));
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -84,6 +87,7 @@ export default function SubscribeModal({
           variantLabel: variant.label,
           quantity,
           durationMonths,
+          billingIntervalMonths,
           isPrepaidSubscription: payUpfront,
           customer: {
             ...form,
@@ -150,10 +154,10 @@ export default function SubscribeModal({
           <div className="mx-6 mt-4 mb-2 bg-stone-50 rounded-2xl p-4 flex flex-col gap-1.5">
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">{product.name} {variant.label} ×{quantity}</span>
-              <span className="font-bold text-gray-900">₹{monthlyTotal} / month</span>
+              <span className="font-bold text-gray-900">₹{monthlyTotal} / {billingIntervalMonths === 2 ? "2 months" : "month"}</span>
             </div>
             <div className="border-t border-gray-200 mt-1 pt-2 flex justify-between">
-              <span className="font-black text-gray-900">Charged Monthly</span>
+              <span className="font-black text-gray-900">Charged {cadenceLabel}</span>
               <span className="font-black text-2xl text-gray-900">₹{monthlyTotal}</span>
             </div>
             <p className="text-xs text-gray-400">Price inclusive of GST. Cancel any time by emailing us.</p>
@@ -173,10 +177,34 @@ export default function SubscribeModal({
                   <input type="checkbox" className="sr-only peer" checked={payUpfront} onChange={(e) => {
                     setPayUpfront(e.target.checked);
                     if (e.target.checked && durationMonths > 12) setDurationMonths(12);
+                    if (e.target.checked) setBillingIntervalMonths(1);
                   }} />
                   <div className="w-11 h-6 bg-amber-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
                 </label>
               </div>
+
+              {/* Billing Cadence */}
+              {!payUpfront && (
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1.5">Billing Frequency</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {([1, 2] as const).map((interval) => (
+                      <button
+                        key={interval}
+                        type="button"
+                        onClick={() => setBillingIntervalMonths(interval)}
+                        className={`py-2.5 rounded-xl text-sm font-bold border transition-colors cursor-pointer ${
+                          billingIntervalMonths === interval
+                            ? isCoffee ? "bg-stone-900 text-white border-stone-900" : "bg-amber-500 text-white border-amber-500"
+                            : "bg-white text-gray-600 border-gray-200"
+                        }`}
+                      >
+                        {interval === 1 ? "Every Month" : "Every 2 Months"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Duration Picker */}
               <div>
@@ -191,7 +219,7 @@ export default function SubscribeModal({
                           <span className="text-amber-600">₹{Math.round(monthlyTotal * durationMonths * 0.95)} total</span>
                         </>
                       ) : (
-                        `₹${monthlyTotal * durationMonths} total commitment`
+                        `₹${monthlyTotal * cycles} total commitment`
                       )}
                     </span>
                   </div>
@@ -219,9 +247,9 @@ export default function SubscribeModal({
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
-                  {payUpfront 
+                  {payUpfront
                     ? `You will be charged ₹${Math.round(monthlyTotal * durationMonths * 0.95)} once today. Deliveries will arrive every month for ${durationMonths} months.`
-                    : `You will be charged ₹${monthlyTotal} monthly for ${durationMonths} months. Auto-cancels afterwards.`
+                    : `You will be charged ₹${monthlyTotal} every ${billingIntervalMonths === 2 ? "2 months" : "month"} for ${durationMonths} months (${cycles} charge${cycles === 1 ? "" : "s"}). Auto-cancels afterwards.`
                   }
                 </p>
               </div>
@@ -315,7 +343,7 @@ export default function SubscribeModal({
         {step === "form" && (
           <div className="shrink-0 px-6 py-4 border-t border-gray-100 bg-white">
             <button type="submit" form="subscribe-form" className={btnClass}>
-              {payUpfront ? `Pay ₹${Math.round(monthlyTotal * durationMonths * 0.95)} Upfront` : `Authorize ₹${monthlyTotal}/month`}
+              {payUpfront ? `Pay ₹${Math.round(monthlyTotal * durationMonths * 0.95)} Upfront` : `Authorize ₹${monthlyTotal} / ${billingIntervalMonths === 2 ? "2mo" : "mo"}`}
             </button>
             <p className="text-center text-xs text-gray-400 mt-2">
               Secured by Cashfree · Cancel any time
