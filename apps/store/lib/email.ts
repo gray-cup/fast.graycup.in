@@ -289,23 +289,3 @@ export async function sendMagicLinkEmail(email: string, magicLink: string): Prom
     html: emailShell(body),
   });
 }
-
-export async function sendTestEmail(to: string): Promise<void> {
-  if (!resend) throw new Error("RESEND_API_KEY is not configured");
-
-  const body = `
-    <h1 style="margin:0 0 8px;font-size:22px;font-weight:900;color:#111827;">Resend is working!</h1>
-    <p style="margin:0;font-size:15px;color:#6b7280;line-height:1.6;">
-      This is a test email from fast.graycup.in sent at ${new Date().toISOString()}.
-    </p>
-  `;
-
-  const { error } = await resend.emails.send({
-    from: FROM_EMAIL,
-    to: [to],
-    subject: "Gray Cup — Test Email",
-    html: emailShell(body),
-  });
-
-  if (error) throw new Error(error.message);
-}
