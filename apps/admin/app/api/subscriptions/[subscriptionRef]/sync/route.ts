@@ -40,7 +40,13 @@ export async function POST(
 
   const cfData = await cfRes.json();
   if (!cfRes.ok) {
-    return NextResponse.json({ error: cfData.message || "Failed to fetch subscription from Cashfree" }, { status: 502 });
+    return NextResponse.json(
+      {
+        error: cfData.message || "Failed to fetch subscription from Cashfree",
+        _debug: { cashfreeEnv, apiBase, cfStatus: cfRes.status, cfError: cfData },
+      },
+      { status: 502 }
+    );
   }
 
   const newStatus: string = cfData.subscription_status || sub.status;

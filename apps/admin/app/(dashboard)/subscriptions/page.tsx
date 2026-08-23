@@ -105,7 +105,8 @@ export default function SubscriptionsPage() {
     try {
       const res = await fetch(`/api/subscriptions/${subscriptionRef}/sync`, { method: "POST" });
       const data = await res.json();
-      showToast(res.ok ? "success" : "error", res.ok ? `Status: ${data.status}` : data.error);
+      const debug = data._debug ? ` [env=${data._debug.cashfreeEnv} cfStatus=${data._debug.cfStatus} cfMsg=${JSON.stringify(data._debug.cfError)}]` : "";
+      showToast(res.ok ? "success" : "error", (res.ok ? `Status: ${data.status}` : data.error) + debug);
       load();
     } catch {
       showToast("error", "Request failed");
