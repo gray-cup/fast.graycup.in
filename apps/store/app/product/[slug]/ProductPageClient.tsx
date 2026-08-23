@@ -266,6 +266,7 @@ export default function ProductPageClient({ slug }: { slug: string }) {
                   >
                     Subscribe Monthly · ₹{variant.price}/mo
                   </button>
+                  <p className="text-xs text-center text-gray-400 mt-2">Cancel anytime, no questions asked.</p>
                 </>
               )}
             </div>
