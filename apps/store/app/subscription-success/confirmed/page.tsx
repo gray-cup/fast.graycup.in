@@ -7,15 +7,20 @@ import { Suspense } from "react";
 function SubscriptionSuccessContent() {
   const params = useSearchParams();
   const ref = params.get("ref");
+  const status = params.get("status");
+  const failed = status === "INITIALIZED" || status === "FAILED";
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-16">
       <div className="max-w-md w-full text-center">
-        <div className="text-5xl mb-4">☕</div>
-        <h1 className="text-3xl font-black text-gray-900 mb-3">Subscription Set Up!</h1>
+        <div className="text-5xl mb-4">{failed ? "😕" : "☕"}</div>
+        <h1 className="text-3xl font-black text-gray-900 mb-3">
+          {failed ? "Authorization Not Completed" : "Subscription Set Up!"}
+        </h1>
         <p className="text-gray-500 mb-6 leading-relaxed">
-          We&apos;re confirming your authorization with Cashfree. You&apos;ll receive an email
-          shortly once your monthly subscription is active, and again every month when a payment goes through.
+          {failed
+            ? "We couldn't confirm your bank authorization. No charge has been made — you can try setting up the subscription again."
+            : "We're confirming your authorization with Cashfree. You'll receive an email shortly once your subscription is active, and again every billing cycle when a payment goes through."}
         </p>
         {ref && (
           <p className="text-xs font-mono text-gray-400 bg-gray-100 px-3 py-2 rounded-lg mb-6">
@@ -33,7 +38,7 @@ function SubscriptionSuccessContent() {
   );
 }
 
-export default function SubscriptionSuccessPage() {
+export default function SubscriptionSuccessConfirmedPage() {
   return (
     <Suspense>
       <SubscriptionSuccessContent />
