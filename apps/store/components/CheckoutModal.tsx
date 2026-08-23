@@ -275,11 +275,9 @@ export default function CheckoutModal({
 
               {/* Email full width */}
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1.5">
-                  Email <span className="text-gray-400 font-normal">(optional)</span>
-                </label>
+                <label className="block text-sm font-bold text-gray-700 mb-1.5">Email</label>
                 <input name="email" type="email" value={form.email} onChange={handleChange}
-                  placeholder="you@example.com" className={inputClass} autoComplete="email" />
+                  required placeholder="you@example.com" className={inputClass} autoComplete="email" />
               </div>
 
               {/* Address full width */}

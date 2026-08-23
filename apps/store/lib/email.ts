@@ -3,7 +3,7 @@ import type { Order, Subscription } from "@/lib/db/schema";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "Gray Cup <orders@fast.graycup.in>";
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "Gray Cup <fast@graycup.com>";
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://fast.graycup.in";
 const LOGO_URL = `${BASE_URL}/graycup.svg`;
 

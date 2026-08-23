@@ -170,8 +170,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "This product is currently out of stock" }, { status: 400 });
     }
 
-    if (!customer?.name || !customer?.phone || !customer?.address || !customer?.pincode) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    if (!customer?.name || !customer?.phone || !customer?.email || !customer?.address || !customer?.pincode) {
+      return NextResponse.json({ error: "Missing required fields (email is required)" }, { status: 400 });
     }
 
     const appId = process.env.CASHFREE_APP_ID;
